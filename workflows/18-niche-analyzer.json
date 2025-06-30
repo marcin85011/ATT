@@ -1,0 +1,71 @@
+{
+  "name": "18-Niche-Analyzer", 
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "webhook-trigger",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhookTrigger", 
+      "typeVersion": 1,
+      "position": [240, 300],
+      "webhookId": "niche-analyzer-18"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ATT System - Niche Analyzer Agent #18\n// Calculate opportunity scores and trigger deep analysis\n\nconst { trackCost } = require('../../shared/cost-tracker');\n\nfunction calculateOpportunityScore(competitionData) {\n  const metrics = competitionData.metrics;\n  \n  // Scoring algorithm (0-100)\n  let score = 50; // Base score\n  \n  // Competition level scoring (inverse relationship)\n  if (metrics.total_results < 1000) score += 30;\n  else if (metrics.total_results < 3000) score += 20;\n  else if (metrics.total_results < 5000) score += 10;\n  else score -= 10;\n  \n  // Price point scoring\n  const avgPrice = parseFloat(metrics.average_price);\n  if (avgPrice > 22) score += 15;\n  else if (avgPrice > 19) score += 10;\n  else if (avgPrice < 16) score -= 10;\n  \n  // BSR scoring (lower is better)\n  if (metrics.average_bsr < 50000) score += 20;\n  else if (metrics.average_bsr < 100000) score += 10;\n  else if (metrics.average_bsr > 500000) score -= 15;\n  \n  // Market saturation penalty\n  if (metrics.market_saturation === 'high') score -= 15;\n  \n  return Math.max(0, Math.min(100, score));\n}\n\nasync function main() {\n  const inputData = $input.first().json;\n  const niche = inputData.niche;\n  \n  console.log(`📊 Analyzing opportunity for: ${niche}`);\n  \n  try {\n    await trackCost('niche_analysis', 0.001, `Agent #18 - Analyzing ${niche}`);\n    \n    const opportunityScore = calculateOpportunityScore(inputData);\n    const isHighPotential = opportunityScore > 70;\n    \n    const analysis = {\n      niche,\n      opportunity_score: opportunityScore,\n      potential_level: isHighPotential ? 'high' : opportunityScore > 50 ? 'medium' : 'low',\n      trigger_deep_analysis: isHighPotential,\n      analysis_factors: {\n        competition_level: inputData.metrics.total_results,\n        price_advantage: parseFloat(inputData.metrics.average_price) > 20,\n        bsr_opportunity: inputData.metrics.average_bsr > 100000,\n        market_saturation: inputData.metrics.market_saturation\n      },\n      original_data: inputData,\n      analyzed_at: new Date().toISOString()\n    };\n    \n    console.log(`📈 Opportunity score: ${opportunityScore} (${analysis.potential_level})`);\n    \n    return [{ json: analysis }];\n    \n  } catch (error) {\n    console.error('❌ Niche Analyzer error:', error);\n    await trackCost('niche_analysis', 0.001, `Agent #18 - Error analyzing ${niche}`, true);\n    throw error;\n  }\n}\n\nreturn await main();"
+      },
+      "id": "analyzer-code",
+      "name": "Calculate Opportunity Score",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [440, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "conditions": [
+            {
+              "leftValue": "={{ $json.opportunity_score }}",
+              "rightValue": 70,
+              "operator": { "type": "number", "operation": "gt" }
+            }
+          ]
+        }
+      },
+      "id": "high-potential-filter",
+      "name": "High Potential Filter (>70)",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [640, 300]
+    },
+    {
+      "parameters": {
+        "mode": "webhook",
+        "webhook": "={{ $env.N8N_WEBHOOK_URL }}/webhook/deep-analyzer-19",
+        "httpMethod": "POST",
+        "body": {
+          "specifyBody": "json", 
+          "jsonBody": "={{ JSON.stringify($json) }}"
+        }
+      },
+      "id": "trigger-deep-analyzer",
+      "name": "Trigger Deep Analyzer",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [840, 200]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": { "main": [[ { "node": "Calculate Opportunity Score", "type": "main", "index": 0 } ]] },
+    "Calculate Opportunity Score": { "main": [[ { "node": "High Potential Filter (>70)", "type": "main", "index": 0 } ]] },
+    "High Potential Filter (>70)": { 
+      "main": [
+        [ { "node": "Trigger Deep Analyzer", "type": "main", "index": 0 } ],
+        []
+      ]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": [{ "id": "agent-18", "name": "niche-analyzer" }],
+  "versionId": "v1.0-week3"
+}

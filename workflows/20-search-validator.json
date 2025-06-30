@@ -1,0 +1,70 @@
+{
+  "name": "20-Search-Validator",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "webhook-trigger",
+      "name": "Webhook Trigger", 
+      "type": "n8n-nodes-base.webhookTrigger",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "webhookId": "search-validator-20"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ATT System - Search Validator Agent #20\n// Google Trends validation with trend direction analysis\n\nconst { trackCost } = require('../../shared/cost-tracker');\n\nasync function validateSearchTrends(niche) {\n  // Simulate Google Trends API call (replace with actual implementation)\n  const trendData = {\n    keyword: niche,\n    current_volume: Math.floor(Math.random() * 1000) + 100,\n    trend_12m: Array.from({length: 12}, () => Math.floor(Math.random() * 100) + 20),\n    related_queries: [\n      niche + ' shirt',\n      niche + ' gift', \n      niche + ' design',\n      niche + ' funny'\n    ]\n  };\n  \n  // Calculate trend direction\n  const recent3m = trendData.trend_12m.slice(-3);\n  const previous3m = trendData.trend_12m.slice(-6, -3);\n  \n  const recentAvg = recent3m.reduce((a, b) => a + b, 0) / recent3m.length;\n  const previousAvg = previous3m.reduce((a, b) => a + b, 0) / previous3m.length;\n  \n  let trendDirection = 'flat';\n  const changePercent = ((recentAvg - previousAvg) / previousAvg) * 100;\n  \n  if (changePercent > 15) trendDirection = 'rising';\n  else if (changePercent < -15) trendDirection = 'falling';\n  \n  return {\n    ...trendData,\n    trend_direction: trendDirection,\n    change_percent: changePercent.toFixed(1),\n    is_declining: trendDirection === 'falling'\n  };\n}\n\nasync function main() {\n  const inputData = $input.first().json;\n  const niche = inputData.niche;\n  \n  console.log(`📈 Validating search trends for: ${niche}`);\n  \n  try {\n    await trackCost('trends_validation', 0.005, `Agent #20 - Trends validation for ${niche}`);\n    \n    const trendsData = await validateSearchTrends(niche);\n    \n    const validation = {\n      niche,\n      opportunity_score: inputData.opportunity_score,\n      competitive_advantage_score: inputData.competitive_advantage_score,\n      search_validation: {\n        current_volume: trendsData.current_volume,\n        trend_direction: trendsData.trend_direction,\n        change_percent: trendsData.change_percent,\n        is_declining: trendsData.is_declining,\n        related_queries: trendsData.related_queries\n      },\n      final_recommendation: {\n        proceed: !trendsData.is_declining && inputData.opportunity_score > 70,\n        reason: trendsData.is_declining ? 'Declining search trends' : 'Validated opportunity',\n        priority: trendsData.trend_direction === 'rising' ? 'high' : 'medium'\n      },\n      complete_analysis: inputData,\n      validated_at: new Date().toISOString()\n    };\n    \n    console.log(`📊 Trend direction: ${trendsData.trend_direction} (${trendsData.change_percent}%)`);\n    console.log(`✅ Final recommendation: ${validation.final_recommendation.proceed ? 'PROCEED' : 'SKIP'}`);\n    \n    return [{ json: validation }];\n    \n  } catch (error) {\n    console.error('❌ Search Validator error:', error);\n    await trackCost('trends_validation', 0.005, `Agent #20 - Error validating ${niche}`, true);\n    throw error;\n  }\n}\n\nreturn await main();"
+      },
+      "id": "validator-code",
+      "name": "Google Trends Validation",
+      "type": "n8n-nodes-base.code", 
+      "typeVersion": 2,
+      "position": [440, 300]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "{{ $env.NOTION_DATABASE_ID }}",
+          "mode": "id"
+        },
+        "pageId": "={{ $json.niche }}",
+        "properties": {
+          "TrendDirection": {
+            "type": "select",
+            "select": { "name": "={{ $json.search_validation.trend_direction }}" }
+          },
+          "Search Volume": {
+            "type": "number", 
+            "number": "={{ $json.search_validation.current_volume }}"
+          },
+          "Trend Change": {
+            "type": "text",
+            "text": [{ "type": "text", "text": "={{ $json.search_validation.change_percent }}%" }]
+          },
+          "Final Status": {
+            "type": "select",
+            "select": { "name": "={{ $json.final_recommendation.proceed ? 'Validated' : 'Rejected' }}" }
+          },
+          "Priority": {
+            "type": "select",
+            "select": { "name": "={{ $json.final_recommendation.priority }}" }
+          }
+        }
+      },
+      "id": "update-nichedb",
+      "name": "Update NicheDB with TrendDirection",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2,
+      "position": [640, 300],
+      "retryOnFail": true
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": { "main": [[ { "node": "Google Trends Validation", "type": "main", "index": 0 } ]] },
+    "Google Trends Validation": { "main": [[ { "node": "Update NicheDB with TrendDirection", "type": "main", "index": 0 } ]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": [{ "id": "agent-20", "name": "search-validator" }],
+  "versionId": "v1.0-week3"
+}

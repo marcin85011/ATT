@@ -1,0 +1,98 @@
+{
+  "name": "17-MBA-Scraper",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "webhook-trigger",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhookTrigger",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "webhookId": "mba-scraper-17"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ATT System - MBA Scraper Agent #17\n// Puppeteer-based Amazon MBA scraping for competition analysis\n\nconst { trackCost } = require('../../shared/cost-tracker');\nconst { isDuplicateTopic } = require('../../shared/utils');\n\nasync function scrapeMBAData(niche) {\n  const searchUrl = `https://www.amazon.com/s?k=${encodeURIComponent(niche + ' t-shirt')}&rh=n%3A7141123011&ref=sr_nr_n_1`;\n  \n  // Simulate Puppeteer scraping (replace with actual implementation)\n  const scrapedData = {\n    total_results: Math.floor(Math.random() * 10000) + 1000,\n    top_products: Array.from({length: 10}, (_, i) => ({\n      title: `Product ${i+1} - ${niche}`,\n      price: (Math.random() * 10 + 15).toFixed(2),\n      bsr: Math.floor(Math.random() * 100000) + 10000,\n      rating: (Math.random() * 2 + 3).toFixed(1),\n      reviews: Math.floor(Math.random() * 1000) + 50\n    })),\n    scrape_timestamp: new Date().toISOString()\n  };\n  \n  return scrapedData;\n}\n\nasync function main() {\n  const inputData = $input.first().json;\n  const niche = inputData.niche;\n  \n  console.log(`🔍 Starting MBA scraper for: ${niche}`);\n  \n  try {\n    // Check for duplicates\n    if (await isDuplicateTopic(niche)) {\n      console.log(`⏭️ Skipping duplicate niche: ${niche}`);\n      return [{ json: { skipped: true, reason: 'duplicate', niche } }];\n    }\n    \n    // Track scraping cost\n    await trackCost('mba_scraping', 0.02, `Agent #17 - MBA scraping for ${niche}`);\n    \n    // Perform scraping\n    const competitionData = await scrapeMBAData(niche);\n    \n    // Calculate basic metrics\n    const avgPrice = competitionData.top_products.reduce((sum, p) => sum + parseFloat(p.price), 0) / competitionData.top_products.length;\n    const avgBSR = competitionData.top_products.reduce((sum, p) => sum + p.bsr, 0) / competitionData.top_products.length;\n    \n    const result = {\n      niche,\n      competition_data: competitionData,\n      metrics: {\n        total_results: competitionData.total_results,\n        average_price: avgPrice.toFixed(2),\n        average_bsr: Math.round(avgBSR),\n        market_saturation: competitionData.total_results > 5000 ? 'high' : 'medium'\n      },\n      source: 'mba-scraper-17',\n      processed_at: new Date().toISOString()\n    };\n    \n    console.log(`✅ Scraped ${competitionData.total_results} results for ${niche}`);\n    return [{ json: result }];\n    \n  } catch (error) {\n    console.error('❌ MBA Scraper error:', error);\n    await trackCost('mba_scraping', 0.02, `Agent #17 - Error scraping ${niche}`, true);\n    throw error;\n  }\n}\n\nreturn await main();"
+      },
+      "id": "mba-scraper-code",
+      "name": "MBA Scraper Logic",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [440, 300]
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "{{ $env.NOTION_DATABASE_ID }}",
+          "mode": "id"
+        },
+        "properties": {
+          "title": "={{ $json.niche }}",
+          "properties": {
+            "Status": {
+              "type": "select", 
+              "select": { "name": "Scraped" }
+            },
+            "Total Results": {
+              "type": "number",
+              "number": "={{ $json.metrics.total_results }}"
+            },
+            "Average Price": {
+              "type": "number", 
+              "number": "={{ parseFloat($json.metrics.average_price) }}"
+            },
+            "Average BSR": {
+              "type": "number",
+              "number": "={{ $json.metrics.average_bsr }}"
+            },
+            "Market Saturation": {
+              "type": "select",
+              "select": { "name": "={{ $json.metrics.market_saturation }}" }
+            },
+            "Competition Data": {
+              "type": "text",
+              "text": [{ "type": "text", "text": "={{ JSON.stringify($json.competition_data) }}" }]
+            },
+            "Agent": {
+              "type": "text",
+              "text": [{ "type": "text", "text": "mba-scraper-17" }]
+            }
+          }
+        }
+      },
+      "id": "save-to-notion",
+      "name": "Save to NicheDB",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2,
+      "position": [640, 300],
+      "retryOnFail": true,
+      "retryTimes": 3
+    },
+    {
+      "parameters": {
+        "mode": "webhook",
+        "webhook": "={{ $env.N8N_WEBHOOK_URL }}/webhook/niche-analyzer-18",
+        "httpMethod": "POST", 
+        "body": {
+          "specifyBody": "json",
+          "jsonBody": "={{ JSON.stringify($json) }}"
+        }
+      },
+      "id": "trigger-analyzer",
+      "name": "Trigger Niche Analyzer",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [840, 300]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": { "main": [[ { "node": "MBA Scraper Logic", "type": "main", "index": 0 } ]] },
+    "MBA Scraper Logic": { "main": [[ { "node": "Save to NicheDB", "type": "main", "index": 0 } ]] },
+    "Save to NicheDB": { "main": [[ { "node": "Trigger Niche Analyzer", "type": "main", "index": 0 } ]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": [{ "id": "agent-17", "name": "mba-scraper" }],
+  "versionId": "v1.0-week3"
+}
