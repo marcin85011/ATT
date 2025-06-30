@@ -1,0 +1,70 @@
+{
+  "name": "07-Perplexity-Synthesis",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "webhook-trigger",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhookTrigger",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "webhookId": "perplexity-synthesis-07"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ATT System - Perplexity Synthesis Agent #07\n// Perplexity Sonar cultural insights summariser\n\nconst { trackCost } = require('../../shared/cost-tracker');\nconst { isDuplicateTopic } = require('../../shared/utils');\nconst { errorHandler } = require('../../shared/error-handler');\n\nasync function synthesizeCulturalInsights(niche, competitorData) {\n  // Simulate Perplexity Sonar API call (replace with actual implementation)\n  const culturalSynthesis = {\n    niche,\n    cultural_context: {\n      target_demographics: {\n        primary_age: '25-45',\n        secondary_age: '18-34',\n        gender_split: 'fairly_even',\n        income_level: 'middle_to_upper_middle'\n      },\n      values_alignment: [\n        'Self-expression',\n        'Authenticity',\n        'Humor appreciation',\n        'Community belonging',\n        'Quality consciousness'\n      ],\n      current_trends: [\n        'Minimalist aesthetic',\n        'Bold statement pieces',\n        'Nostalgic references',\n        'Sustainable materials',\n        'Personalized messaging'\n      ],\n      pain_points: [\n        'Generic mass-market designs',\n        'Poor quality prints',\n        'Limited size options',\n        'Overpriced basic designs',\n        'Lack of authentic messaging'\n      ]\n    },\n    market_sentiment: {\n      overall_mood: Math.random() > 0.3 ? 'positive' : 'neutral',\n      trending_themes: [\n        'Authentic self-expression',\n        'Community connection',\n        'Quality over quantity'\n      ],\n      seasonal_factors: [\n        'Holiday gift-giving approaching',\n        'Back-to-work season energy',\n        'Social media influence peaks'\n      ],\n      competitive_landscape: 'moderately_saturated'\n    },\n    actionable_insights: [\n      'Focus on authentic emotional messaging that resonates with core values',\n      'Leverage current cultural moments and trending topics',\n      'Emphasize quality and uniqueness over mass appeal',\n      'Create designs that facilitate community belonging',\n      'Address pain points through superior execution'\n    ],\n    design_recommendations: {\n      style_direction: 'clean_minimalist_with_personality',\n      messaging_tone: 'authentic_relatable_slightly_humorous',\n      color_palette: ['black', 'white', 'earth_tones', 'accent_colors'],\n      typography: 'clean_modern_readable',\n      cultural_hooks: [\n        `${niche} community insider references`,\n        'Trending cultural moments',\n        'Authentic lifestyle messaging'\n      ]\n    },\n    confidence_score: Math.floor(Math.random() * 20) + 80, // 80-100\n    synthesis_timestamp: new Date().toISOString()\n  };\n  \n  return culturalSynthesis;\n}\n\nasync function main() {\n  const inputData = $input.first().json;\n  const niche = inputData.niche;\n  \n  console.log(`🌍 Cultural synthesis for: ${niche}`);\n  \n  try {\n    // Track Perplexity Sonar API cost\n    await trackCost('perplexity_synthesis', 0.12, `Agent #07 - Cultural synthesis for ${niche}`);\n    \n    const culturalInsights = await synthesizeCulturalInsights(niche, inputData);\n    \n    const result = {\n      niche,\n      cultural_insights: culturalInsights,\n      insight_categories: {\n        demographic_insights: culturalInsights.cultural_context.target_demographics,\n        trend_analysis: culturalInsights.cultural_context.current_trends,\n        opportunity_gaps: culturalInsights.cultural_context.pain_points,\n        design_direction: culturalInsights.design_recommendations\n      },\n      strategic_summary: {\n        market_readiness: culturalInsights.confidence_score > 85 ? 'high' : 'medium',\n        primary_opportunity: culturalInsights.actionable_insights[0],\n        design_style: culturalInsights.design_recommendations.style_direction,\n        messaging_approach: culturalInsights.design_recommendations.messaging_tone\n      },\n      agent_source: 'perplexity-synthesis-07',\n      processed_at: new Date().toISOString()\n    };\n    \n    console.log(`✅ Cultural synthesis complete (confidence: ${culturalInsights.confidence_score}%)`);\n    console.log(`🎯 Market readiness: ${result.strategic_summary.market_readiness}`);\n    \n    // Success heartbeat\n    await trackCost('system_health', 0.001, 'Agent #07 - Success heartbeat');\n    \n    return [{ json: result }];\n    \n  } catch (error) {\n    console.error('❌ Perplexity Synthesis error:', error);\n    await errorHandler('perplexity-synthesis-07', error, { niche });\n    throw error;\n  }\n}\n\nreturn await main();"
+      },
+      "id": "perplexity-synthesis-code",
+      "name": "Perplexity Cultural Analysis",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [440, 300]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "{{ $env.NOTION_DATABASE_ID }}",
+          "mode": "id"
+        },
+        "pageId": "={{ $json.niche }}",
+        "properties": {
+          "Cultural Insights": {
+            "type": "text",
+            "text": [{ "type": "text", "text": "={{ JSON.stringify($json.cultural_insights) }}" }]
+          },
+          "Market Readiness": {
+            "type": "select",
+            "select": { "name": "={{ $json.strategic_summary.market_readiness }}" }
+          },
+          "Design Style": {
+            "type": "text",
+            "text": [{ "type": "text", "text": "={{ $json.strategic_summary.design_style }}" }]
+          },
+          "Messaging Approach": {
+            "type": "text",
+            "text": [{ "type": "text", "text": "={{ $json.strategic_summary.messaging_approach }}" }]
+          },
+          "Confidence Score": {
+            "type": "number",
+            "number": "={{ $json.cultural_insights.confidence_score }}"
+          }
+        }
+      },
+      "id": "update-cultural-insights",
+      "name": "Update Cultural Insights",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2,
+      "position": [640, 300],
+      "retryOnFail": true
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": { "main": [[ { "node": "Perplexity Cultural Analysis", "type": "main", "index": 0 } ]] },
+    "Perplexity Cultural Analysis": { "main": [[ { "node": "Update Cultural Insights", "type": "main", "index": 0 } ]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": [{ "id": "agent-07", "name": "perplexity-synthesis" }],
+  "versionId": "v1.0-week4"
+}

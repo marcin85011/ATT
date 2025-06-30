@@ -1,0 +1,74 @@
+{
+  "name": "06-Deep-Competitor",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "webhook-trigger",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhookTrigger",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "webhookId": "deep-competitor-06"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ATT System - Deep Competitor Agent #06\n// ScrapeHero Product API deep fetch on competitor ASINs\n\nconst { trackCost } = require('../../shared/cost-tracker');\nconst { isDuplicateTopic } = require('../../shared/utils');\nconst { errorHandler } = require('../../shared/error-handler');\n\nasync function deepFetchCompetitor(asin) {\n  // Simulate ScrapeHero Product API call (replace with actual implementation)\n  const productData = {\n    asin,\n    fetch_timestamp: new Date().toISOString(),\n    product_details: {\n      title: `Deep Analysis Product ${asin}`,\n      brand: `Brand-${asin.slice(-4)}`,\n      price: (Math.random() * 20 + 15).toFixed(2),\n      list_price: (Math.random() * 5 + 35).toFixed(2),\n      bsr: Math.floor(Math.random() * 300000) + 10000,\n      category_bsr: Math.floor(Math.random() * 5000) + 100,\n      reviews: {\n        count: Math.floor(Math.random() * 8000) + 100,\n        rating: (Math.random() * 2 + 3.5).toFixed(1)\n      },\n      images: [\n        `https://example.com/${asin}-main.jpg`,\n        `https://example.com/${asin}-back.jpg`,\n        `https://example.com/${asin}-detail.jpg`\n      ],\n      features: [\n        'Premium 100% cotton',\n        'Machine washable',\n        'Imported',\n        'Comfortable fit'\n      ],\n      description: `High-quality design with premium materials...`,\n      variations: {\n        colors: Math.floor(Math.random() * 12) + 3,\n        sizes: ['S', 'M', 'L', 'XL', 'XXL']\n      },\n      sales_estimate: Math.floor(Math.random() * 2000) + 100,\n      listing_quality_score: Math.floor(Math.random() * 30) + 70\n    }\n  };\n  \n  return productData;\n}\n\nasync function analyzeCompetitorGroup(competitorData) {\n  const products = competitorData.serp_data.top_competitors;\n  const deepAnalysis = [];\n  \n  for (const competitor of products.slice(0, 3)) { // Analyze top 3\n    const productDetails = await deepFetchCompetitor(competitor.asin);\n    deepAnalysis.push({\n      competitor_rank: competitor.rank,\n      asin: competitor.asin,\n      deep_data: productDetails.product_details,\n      competitive_advantages: [\n        `BSR: ${productDetails.product_details.bsr}`,\n        `Reviews: ${productDetails.product_details.reviews.count}`,\n        `Quality: ${productDetails.product_details.listing_quality_score}/100`\n      ],\n      market_gaps: [\n        'Limited color variety',\n        'Basic product photos',\n        'Generic description'\n      ]\n    });\n  }\n  \n  return deepAnalysis;\n}\n\nasync function main() {\n  const inputData = $input.first().json;\n  const niche = inputData.niche;\n  \n  console.log(`🔬 Deep competitor analysis for: ${niche}`);\n  \n  try {\n    // Track ScrapeHero API cost (estimated per product)\n    await trackCost('scrapehero_deep', 0.15, `Agent #06 - Deep competitor analysis for ${niche}`);\n    \n    const deepAnalysis = await analyzeCompetitorGroup(inputData);\n    \n    // Calculate aggregate insights\n    const avgBSR = deepAnalysis.reduce((sum, a) => sum + a.deep_data.bsr, 0) / deepAnalysis.length;\n    const avgReviews = deepAnalysis.reduce((sum, a) => sum + a.deep_data.reviews.count, 0) / deepAnalysis.length;\n    const avgQuality = deepAnalysis.reduce((sum, a) => sum + a.deep_data.listing_quality_score, 0) / deepAnalysis.length;\n    \n    const result = {\n      niche,\n      deep_competitor_analysis: deepAnalysis,\n      aggregate_insights: {\n        analyzed_count: deepAnalysis.length,\n        average_bsr: Math.round(avgBSR),\n        average_reviews: Math.round(avgReviews),\n        average_quality_score: Math.round(avgQuality),\n        market_opportunity: avgQuality < 80 ? 'high' : avgQuality < 90 ? 'medium' : 'low'\n      },\n      strategic_recommendations: [\n        avgBSR > 100000 ? 'BSR opportunity exists' : 'Highly competitive BSR range',\n        avgReviews < 500 ? 'Review count opportunity' : 'Established review base',\n        avgQuality < 85 ? 'Quality improvement opportunity' : 'High quality competition'\n      ],\n      agent_source: 'deep-competitor-06',\n      processed_at: new Date().toISOString()\n    };\n    \n    console.log(`✅ Analyzed ${deepAnalysis.length} top competitors`);\n    console.log(`📊 Market opportunity: ${result.aggregate_insights.market_opportunity}`);\n    \n    // Success heartbeat\n    await trackCost('system_health', 0.001, 'Agent #06 - Success heartbeat');\n    \n    return [{ json: result }];\n    \n  } catch (error) {\n    console.error('❌ Deep Competitor error:', error);\n    await errorHandler('deep-competitor-06', error, { niche });\n    throw error;\n  }\n}\n\nreturn await main();"
+      },
+      "id": "deep-competitor-code",
+      "name": "ScrapeHero Deep Fetch",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [440, 300]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "{{ $env.NOTION_DATABASE_ID }}",
+          "mode": "id"
+        },
+        "pageId": "={{ $json.niche }}_competitors",
+        "properties": {
+          "Deep Analysis": {
+            "type": "text",
+            "text": [{ "type": "text", "text": "={{ JSON.stringify($json.deep_competitor_analysis) }}" }]
+          },
+          "Market Opportunity": {
+            "type": "select",
+            "select": { "name": "={{ $json.aggregate_insights.market_opportunity }}" }
+          },
+          "Average BSR": {
+            "type": "number",
+            "number": "={{ $json.aggregate_insights.average_bsr }}"
+          },
+          "Average Reviews": {
+            "type": "number",
+            "number": "={{ $json.aggregate_insights.average_reviews }}"
+          },
+          "Quality Score": {
+            "type": "number",
+            "number": "={{ $json.aggregate_insights.average_quality_score }}"
+          },
+          "Recommendations": {
+            "type": "text",
+            "text": [{ "type": "text", "text": "={{ $json.strategic_recommendations.join('; ') }}" }]
+          }
+        }
+      },
+      "id": "update-competitorsdb",
+      "name": "Update CompetitorsDB Deep",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2,
+      "position": [640, 300],
+      "retryOnFail": true
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": { "main": [[ { "node": "ScrapeHero Deep Fetch", "type": "main", "index": 0 } ]] },
+    "ScrapeHero Deep Fetch": { "main": [[ { "node": "Update CompetitorsDB Deep", "type": "main", "index": 0 } ]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": [{ "id": "agent-06", "name": "deep-competitor" }],
+  "versionId": "v1.0-week4"
+}

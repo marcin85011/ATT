@@ -1,0 +1,76 @@
+{
+  "name": "05-Competitor-SERP",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "webhook-trigger",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhookTrigger",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "webhookId": "competitor-serp-05"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ATT System - Competitor SERP Agent #05\n// Firecrawl SERP scrape (top-5) → CompetitorsDB\n\nconst { trackCost } = require('../../shared/cost-tracker');\nconst { isDuplicateTopic } = require('../../shared/utils');\nconst { errorHandler } = require('../../shared/error-handler');\n\nasync function scrapeCompetitorSERP(niche) {\n  const searchQuery = `${niche} t-shirt amazon`;\n  \n  // Simulate Firecrawl API call (replace with actual implementation)\n  const firecrawlData = {\n    search_query: searchQuery,\n    scrape_timestamp: new Date().toISOString(),\n    total_results: Math.floor(Math.random() * 50000) + 10000,\n    top_competitors: Array.from({length: 5}, (_, i) => {\n      const asin = `B${String(Math.random()).slice(2, 12).toUpperCase()}`;\n      return {\n        rank: i + 1,\n        title: `${niche} T-Shirt Design ${i + 1}`,\n        url: `https://amazon.com/dp/${asin}`,\n        asin: asin,\n        price: (Math.random() * 15 + 12).toFixed(2),\n        rating: (Math.random() * 2 + 3).toFixed(1),\n        reviews: Math.floor(Math.random() * 5000) + 100,\n        snippet: `Premium ${niche} design with high-quality print...`,\n        image_url: `https://example.com/product-${asin}.jpg`\n      };\n    })\n  };\n  \n  return firecrawlData;\n}\n\nasync function main() {\n  const inputData = $input.first().json;\n  const niche = inputData.niche;\n  \n  console.log(`🔍 SERP scraping for competitors: ${niche}`);\n  \n  try {\n    // Check for duplicates\n    if (await isDuplicateTopic(`${niche}_serp`)) {\n      console.log(`⏭️ Skipping duplicate SERP scrape: ${niche}`);\n      return [{ json: { skipped: true, reason: 'duplicate_serp', niche } }];\n    }\n    \n    // Track Firecrawl API cost\n    await trackCost('firecrawl_serp', 0.08, `Agent #05 - SERP scraping for ${niche}`);\n    \n    const serpData = await scrapeCompetitorSERP(niche);\n    \n    const result = {\n      niche,\n      serp_data: serpData,\n      competitor_count: serpData.top_competitors.length,\n      average_price: (serpData.top_competitors.reduce((sum, c) => sum + parseFloat(c.price), 0) / serpData.top_competitors.length).toFixed(2),\n      average_rating: (serpData.top_competitors.reduce((sum, c) => sum + parseFloat(c.rating), 0) / serpData.top_competitors.length).toFixed(1),\n      agent_source: 'competitor-serp-05',\n      processed_at: new Date().toISOString()\n    };\n    \n    console.log(`✅ Found ${serpData.top_competitors.length} top competitors`);\n    console.log(`💰 Average competitor price: $${result.average_price}`);\n    \n    // Success heartbeat\n    await trackCost('system_health', 0.001, 'Agent #05 - Success heartbeat');\n    \n    return [{ json: result }];\n    \n  } catch (error) {\n    console.error('❌ Competitor SERP error:', error);\n    await errorHandler('competitor-serp-05', error, { niche });\n    throw error;\n  }\n}\n\nreturn await main();"
+      },
+      "id": "serp-scraper-code",
+      "name": "Firecrawl SERP Scraper",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [440, 300]
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "{{ $env.NOTION_DATABASE_ID }}",
+          "mode": "id"
+        },
+        "properties": {
+          "title": "={{ $json.niche }}_competitors",
+          "properties": {
+            "Niche": {
+              "type": "text",
+              "text": [{ "type": "text", "text": "={{ $json.niche }}" }]
+            },
+            "Competitor Count": {
+              "type": "number",
+              "number": "={{ $json.competitor_count }}"
+            },
+            "Average Price": {
+              "type": "number",
+              "number": "={{ parseFloat($json.average_price) }}"
+            },
+            "Average Rating": {
+              "type": "number",
+              "number": "={{ parseFloat($json.average_rating) }}"
+            },
+            "SERP Data": {
+              "type": "text",
+              "text": [{ "type": "text", "text": "={{ JSON.stringify($json.serp_data) }}" }]
+            },
+            "Agent": {
+              "type": "text",
+              "text": [{ "type": "text", "text": "competitor-serp-05" }]
+            }
+          }
+        }
+      },
+      "id": "save-to-competitorsdb",
+      "name": "Save to CompetitorsDB",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2,
+      "position": [640, 300],
+      "retryOnFail": true
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": { "main": [[ { "node": "Firecrawl SERP Scraper", "type": "main", "index": 0 } ]] },
+    "Firecrawl SERP Scraper": { "main": [[ { "node": "Save to CompetitorsDB", "type": "main", "index": 0 } ]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": [{ "id": "agent-05", "name": "competitor-serp" }],
+  "versionId": "v1.0-week4"
+}
