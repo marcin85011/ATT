@@ -1,0 +1,247 @@
+{
+  "version": "1.0",
+  "schemas": {
+    "TaskDB": {
+      "description": "Main task tracking database for niche processing pipeline",
+      "properties": {
+        "Niche": {
+          "type": "title",
+          "required": true,
+          "description": "The niche being processed"
+        },
+        "Status": {
+          "type": "select",
+          "options": ["pending", "processing", "completed", "failed"],
+          "required": true,
+          "description": "Current processing status"
+        },
+        "Agent Progress": {
+          "type": "text",
+          "description": "JSON tracking which agents have completed"
+        },
+        "Priority Score": {
+          "type": "number",
+          "description": "Calculated priority score from agent #04"
+        },
+        "Opportunity Score": {
+          "type": "number",
+          "description": "Market opportunity score from agent #18"
+        },
+        "Trend Direction": {
+          "type": "select",
+          "options": ["rising", "stable", "falling", "flat"],
+          "description": "Trend analysis from agent #20"
+        },
+        "IP Status": {
+          "type": "select",
+          "options": ["approved", "flagged", "rejected"],
+          "description": "IP clearance status from agent #09"
+        },
+        "Vision Status": {
+          "type": "select",
+          "options": ["approved", "rejected"],
+          "description": "Visual similarity check from agent #11"
+        },
+        "Final Result": {
+          "type": "text",
+          "description": "Final processing outcome with details"
+        },
+        "Created At": {
+          "type": "created_time",
+          "description": "When the task was created"
+        },
+        "Last Updated": {
+          "type": "last_edited_time",
+          "description": "When the task was last modified"
+        }
+      }
+    },
+    "NicheDB": {
+      "description": "Niche analysis and scoring database",
+      "properties": {
+        "Niche": {
+          "type": "title",
+          "required": true,
+          "description": "The niche name"
+        },
+        "Keyword Combinations": {
+          "type": "number",
+          "description": "Number of keyword combinations from agent #16"
+        },
+        "Competition Count": {
+          "type": "number",
+          "description": "Number of competitors found from agent #17"
+        },
+        "Opportunity Score": {
+          "type": "number",
+          "description": "Market opportunity score from agent #18"
+        },
+        "Visual Analysis": {
+          "type": "text",
+          "description": "GPT-4o vision analysis from agent #19"
+        },
+        "Trend Direction": {
+          "type": "select",
+          "options": ["rising", "stable", "falling", "flat"],
+          "description": "Google Trends direction from agent #20"
+        },
+        "Cultural Insights": {
+          "type": "text",
+          "description": "Cultural analysis from agent #07"
+        },
+        "Market Readiness": {
+          "type": "select",
+          "options": ["high", "medium", "low"],
+          "description": "Market readiness assessment"
+        },
+        "Design Style": {
+          "type": "text",
+          "description": "Recommended design style direction"
+        },
+        "Messaging Approach": {
+          "type": "text",
+          "description": "Recommended messaging approach"
+        },
+        "Confidence Score": {
+          "type": "number",
+          "description": "Overall confidence in the analysis"
+        }
+      }
+    },
+    "CompetitorsDB": {
+      "description": "Competitor analysis and market intelligence",
+      "properties": {
+        "Niche": {
+          "type": "title",
+          "required": true,
+          "description": "The niche being analyzed"
+        },
+        "Competitor Count": {
+          "type": "number",
+          "description": "Number of competitors found"
+        },
+        "Average Price": {
+          "type": "number",
+          "description": "Average competitor pricing"
+        },
+        "Average Rating": {
+          "type": "number",
+          "description": "Average competitor rating"
+        },
+        "SERP Data": {
+          "type": "text",
+          "description": "JSON data from SERP scraping"
+        },
+        "Deep Analysis": {
+          "type": "text",
+          "description": "Deep competitor analysis from ScrapeHero"
+        },
+        "Market Opportunity": {
+          "type": "select",
+          "options": ["high", "medium", "low"],
+          "description": "Assessed market opportunity level"
+        },
+        "Average BSR": {
+          "type": "number",
+          "description": "Average Best Seller Rank"
+        },
+        "Average Reviews": {
+          "type": "number",
+          "description": "Average review count"
+        },
+        "Quality Score": {
+          "type": "number",
+          "description": "Average listing quality score"
+        },
+        "Recommendations": {
+          "type": "text",
+          "description": "Strategic recommendations"
+        },
+        "Agent": {
+          "type": "text",
+          "description": "Source agent identifier"
+        }
+      }
+    },
+    "SystemHealth": {
+      "description": "System health monitoring and cost tracking",
+      "properties": {
+        "Timestamp": {
+          "type": "title",
+          "required": true,
+          "description": "Health check timestamp"
+        },
+        "System Status": {
+          "type": "select",
+          "options": ["healthy", "warning", "critical"],
+          "description": "Overall system status"
+        },
+        "Daily Cost": {
+          "type": "number",
+          "description": "Total daily API costs"
+        },
+        "Agent Status": {
+          "type": "text",
+          "description": "JSON status of all agents"
+        },
+        "Error Count": {
+          "type": "number",
+          "description": "Number of errors in last 24h"
+        },
+        "Success Rate": {
+          "type": "number",
+          "description": "Overall success rate percentage"
+        },
+        "Budget Alert": {
+          "type": "checkbox",
+          "description": "Whether budget threshold exceeded"
+        },
+        "Notes": {
+          "type": "text",
+          "description": "Additional health monitoring notes"
+        }
+      }
+    }
+  },
+  "relationships": {
+    "TaskDB_to_NicheDB": {
+      "type": "one_to_one",
+      "description": "Each task corresponds to one niche analysis"
+    },
+    "TaskDB_to_CompetitorsDB": {
+      "type": "one_to_many",
+      "description": "Each task may have multiple competitor analyses"
+    }
+  },
+  "validation_rules": {
+    "required_for_completion": [
+      "Niche",
+      "Status", 
+      "Priority Score",
+      "Opportunity Score",
+      "IP Status"
+    ],
+    "score_ranges": {
+      "Priority Score": [0, 100],
+      "Opportunity Score": [0, 100],
+      "Confidence Score": [0, 100]
+    },
+    "status_flow": {
+      "TaskDB.Status": ["pending", "processing", "completed", "failed"],
+      "valid_transitions": {
+        "pending": ["processing", "failed"],
+        "processing": ["completed", "failed"],
+        "completed": [],
+        "failed": ["pending"]
+      }
+    }
+  },
+  "api_integration_fields": {
+    "agent_05_firecrawl": ["SERP Data", "Competitor Count"],
+    "agent_06_scrapehero": ["Deep Analysis", "Average BSR", "Quality Score"],
+    "agent_07_perplexity": ["Cultural Insights", "Market Readiness"],
+    "agent_09_trademark": ["IP Status", "IP Risk Level"],
+    "agent_10_replicate": ["Image URL", "Generation Cost"],
+    "agent_11_vision": ["Vision Status", "Max Similarity"]
+  }
+}
