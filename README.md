@@ -27,6 +27,7 @@ The ATT System is a comprehensive n8n-based workflow automation platform for gen
    - Notion API + Database
    - Google Trends (optional cookie)
    - OPPORTUNITY_SCORE_THRESHOLD (configurable analyzer threshold, default: 70)
+     *Note: Lowering far below 60 may push Priority scores to 100 (they're clamped)*
 
 3. **n8n Import**
    ```bash
@@ -62,3 +63,21 @@ Niche Generator → MBA Scraper → Niche Analyzer
 - TrendDirection (Select: rising/flat/falling)
 - Status (Select)
 - Agent Source (Select)
+
+## Week 4 - Intelligence Layer System
+
+### Agents Overview
+| Agent | File | Purpose |
+|-------|------|---------|
+| #04 | 04-priority-scorer.json | GPT-4o priority scoring |
+| #05 | 05-competitor-serp.json | Firecrawl SERP scrape → CompetitorsDB |
+| #06 | 06-deep-competitor.json | ScrapeHero deep competitor fetch |
+| #07 | 07-perplexity-synthesis.json | Perplexity Sonar cultural insights |
+| #08 | 08-prompt-builder.json | GPT-4o → Imagen prompt builder |
+
+### Run Order
+**Pipeline**: Priority → SERP → Deep → Cultural → Prompt
+
+### Cost Optimization
+- Cost per niche: ≈ $0.29-0.59
+- Cycle capacity: ≈ 8-12 niches/day under $5 budget
