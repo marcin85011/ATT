@@ -1,0 +1,84 @@
+{
+  "name": "27-Variant-Generator",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "webhook-trigger",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhookTrigger",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "webhookId": "variant-generator-27"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ATT System - Variant Generator Agent #27\n// For approved designs: output 3 style variants (color/layout) → new TaskDB rows\n\nconst { trackCost } = require('../../shared/cost-tracker');\nconst { errorHandler } = require('../../shared/error-handler');\n\nasync function generateVariants(originalDesign) {\n  const baseNiche = originalDesign.niche;\n  const basePrompt = originalDesign.replicate_ready?.prompt || '';\n  \n  // Define 3 variant strategies\n  const variantStrategies = [\n    {\n      type: 'color_invert',\n      name: `${baseNiche} - Dark Variant`,\n      prompt_modifier: basePrompt.replace(/black.*?white/gi, 'white background with black text').replace(/white.*?black/gi, 'white background with black text'),\n      color_strategy: 'inverted_colors',\n      variant_description: 'Inverted color scheme for different aesthetic appeal'\n    },\n    {\n      type: 'minimal_layout', \n      name: `${baseNiche} - Minimal Variant`,\n      prompt_modifier: basePrompt.replace(/bold|complex/gi, 'minimal').replace(/detailed/gi, 'simple') + ' Extremely minimal and clean design.',\n      color_strategy: 'monochrome_minimal',\n      variant_description: 'Simplified minimal layout with reduced visual elements'\n    },\n    {\n      type: 'accent_color',\n      name: `${baseNiche} - Accent Variant`, \n      prompt_modifier: basePrompt + ' Add a single bright accent color for visual pop.',\n      color_strategy: 'accent_highlight',\n      variant_description: 'Original design with strategic accent color placement'\n    }\n  ];\n  \n  return variantStrategies.map((strategy, index) => ({\n    parent_design_id: originalDesign.niche,\n    variant_id: `${originalDesign.niche}_variant_${index + 1}`,\n    variant_type: strategy.type,\n    niche: strategy.name,\n    replicate_ready: {\n      prompt: strategy.prompt_modifier,\n      parameters: originalDesign.replicate_ready?.parameters || {},\n      estimated_cost: 0.25\n    },\n    color_strategy: strategy.color_strategy,\n    variant_description: strategy.variant_description,\n    inherited_data: {\n      priority_score: originalDesign.priority_analysis?.priority_score || 0,\n      cultural_insights: originalDesign.cultural_insights,\n      ip_status: 'inherited_approved',\n      vision_status: 'pending_generation'\n    },\n    agent_source: 'variant-generator-27',\n    created_at: new Date().toISOString()\n  }));\n}\n\nasync function main() {\n  const inputData = $input.first().json;\n  const niche = inputData.niche;\n  \n  console.log(`🎨 Generating variants for approved design: ${niche}`);\n  \n  try {\n    // Only proceed if design passed all checks\n    if (inputData.vision_status !== 'approved' || inputData.ip_status !== 'approved') {\n      console.log(`⏭️ Skipping variants - design not fully approved`);\n      return [{ json: { skipped: true, reason: 'design_not_approved', niche } }];\n    }\n    \n    // Track variant generation cost\n    await trackCost('variant_generation', 0.01, `Agent #27 - Variant generation for ${niche}`);\n    \n    const variants = await generateVariants(inputData);\n    \n    const result = {\n      parent_design: niche,\n      variants_created: variants.length,\n      variants: variants,\n      total_estimated_cost: variants.length * 0.25, // 3 x $0.25 generation cost\n      agent_source: 'variant-generator-27',\n      generated_at: new Date().toISOString()\n    };\n    \n    console.log(`✅ Generated ${variants.length} variants for ${niche}`);\n    console.log(`💰 Estimated generation cost: $${result.total_estimated_cost}`);\n    \n    // Success heartbeat\n    await trackCost('system_health', 0.001, 'Agent #27 - Success heartbeat');\n    \n    return variants.map(variant => ({ json: variant }));\n    \n  } catch (error) {\n    console.error('❌ Variant Generator error:', error);\n    await errorHandler('variant-generator-27', error, { niche });\n    throw error;\n  }\n}\n\nreturn await main();"
+      },
+      "id": "variant-generator-code",
+      "name": "Generate 3 Style Variants",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [440, 300]
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "{{ $env.NOTION_DATABASE_ID }}",
+          "mode": "id"
+        },
+        "properties": {
+          "title": "={{ $json.niche }}",
+          "properties": {
+            "Parent Design": {
+              "type": "text",
+              "text": [{ "type": "text", "text": "={{ $json.parent_design_id }}" }]
+            },
+            "Variant Type": {
+              "type": "select",
+              "select": { "name": "={{ $json.variant_type }}" }
+            },
+            "Color Strategy": {
+              "type": "text",
+              "text": [{ "type": "text", "text": "={{ $json.color_strategy }}" }]
+            },
+            "Variant Description": {
+              "type": "text",
+              "text": [{ "type": "text", "text": "={{ $json.variant_description }}" }]
+            },
+            "IP Status": {
+              "type": "select",
+              "select": { "name": "={{ $json.inherited_data.ip_status }}" }
+            },
+            "Vision Status": {
+              "type": "select",
+              "select": { "name": "={{ $json.inherited_data.vision_status }}" }
+            },
+            "Replicate Prompt": {
+              "type": "text",
+              "text": [{ "type": "text", "text": "={{ $json.replicate_ready.prompt }}" }]
+            },
+            "Agent": {
+              "type": "text",
+              "text": [{ "type": "text", "text": "variant-generator-27" }]
+            }
+          }
+        }
+      },
+      "id": "create-variant-taskdb",
+      "name": "Create Variant TaskDB Row",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2,
+      "position": [640, 300],
+      "retryOnFail": true
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": { "main": [[ { "node": "Generate 3 Style Variants", "type": "main", "index": 0 } ]] },
+    "Generate 3 Style Variants": { "main": [[ { "node": "Create Variant TaskDB Row", "type": "main", "index": 0 } ]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": [{ "id": "agent-27", "name": "variant-generator" }],
+  "versionId": "v1.0-week5"
+}

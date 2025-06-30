@@ -1,0 +1,66 @@
+{
+  "name": "10-Image-Generator",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "webhook-trigger",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhookTrigger",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "webhookId": "image-generator-10"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ATT System - Image Generator Agent #10\n// Replicate Imagen 4 Pro generation (6144×6144 PNG)\n\nconst { trackCost } = require('../../shared/cost-tracker');\nconst { errorHandler } = require('../../shared/error-handler');\n\nasync function generateImageReplicate(prompt, negativePrompt) {\n  // Simulate Replicate API call for Imagen 4 Pro (replace with actual implementation)\n  const imageGeneration = {\n    prompt,\n    negative_prompt: negativePrompt,\n    parameters: {\n      width: 6144,\n      height: 6144,\n      format: 'PNG',\n      steps: 50,\n      guidance_scale: 7.5,\n      model: 'imagen-4-pro'\n    },\n    generated_url: `https://replicate.delivery/pbxt/${Math.random().toString(36).substr(2, 20)}.png`,\n    generation_cost: 0.25,\n    generation_time: Math.floor(Math.random() * 60) + 30,\n    seed: Math.floor(Math.random() * 1000000)\n  };\n  \n  return imageGeneration;\n}\n\nasync function main() {\n  const inputData = $input.first().json;\n  const niche = inputData.niche;\n  const replicatePrompt = inputData.replicate_ready?.prompt;\n  \n  console.log(`🎨 Generating image for: ${niche}`);\n  \n  try {\n    // Only proceed if IP approved\n    if (inputData.ip_status !== 'approved') {\n      console.log(`⛔ Skipping generation - IP status: ${inputData.ip_status}`);\n      return [{ json: { skipped: true, reason: 'ip_not_approved', niche, ip_status: inputData.ip_status } }];\n    }\n    \n    if (!replicatePrompt) {\n      throw new Error('No Replicate prompt available');\n    }\n    \n    // Enhanced negative prompt for print-ready designs\n    const negativePrompt = 'blurry, low quality, pixelated, watermark, signature, text overlay, copyrighted logos, brand names, trademarked symbols, complex backgrounds, photo-realistic faces, celebrity likenesses, offensive content';\n    \n    // Track image generation cost\n    await trackCost('image_generation', 0.25, `Agent #10 - Image generation for ${niche}`);\n    \n    const imageResult = await generateImageReplicate(replicatePrompt, negativePrompt);\n    \n    const result = {\n      niche,\n      image_generation: imageResult,\n      image_url: imageResult.generated_url,\n      generation_cost: imageResult.generation_cost,\n      image_specs: {\n        resolution: '6144x6144',\n        format: 'PNG',\n        print_ready: true,\n        dpi_equivalent: 300\n      },\n      agent_source: 'image-generator-10',\n      generated_at: new Date().toISOString()\n    };\n    \n    console.log(`✅ Image generated: ${imageResult.generated_url}`);\n    console.log(`💰 Generation cost: $${imageResult.generation_cost}`);\n    \n    // Success heartbeat\n    await trackCost('system_health', 0.001, 'Agent #10 - Success heartbeat');\n    \n    return [{ json: result }];\n    \n  } catch (error) {\n    console.error('❌ Image Generator error:', error);\n    await errorHandler('image-generator-10', error, { niche });\n    throw error;\n  }\n}\n\nreturn await main();"
+      },
+      "id": "image-generator-code",
+      "name": "Replicate Imagen 4 Pro",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [440, 300]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "{{ $env.NOTION_DATABASE_ID }}",
+          "mode": "id"
+        },
+        "pageId": "={{ $json.niche }}",
+        "properties": {
+          "Image URL": {
+            "type": "url",
+            "url": "={{ $json.image_url }}"
+          },
+          "Generation Cost": {
+            "type": "number",
+            "number": "={{ $json.generation_cost }}"
+          },
+          "Image Specs": {
+            "type": "text",
+            "text": [{ "type": "text", "text": "={{ JSON.stringify($json.image_specs) }}" }]
+          },
+          "Generated At": {
+            "type": "date",
+            "date": { "start": "={{ $json.generated_at }}" }
+          }
+        }
+      },
+      "id": "update-image-data",
+      "name": "Update TaskDB Image Data",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2,
+      "position": [640, 300],
+      "retryOnFail": true
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": { "main": [[ { "node": "Replicate Imagen 4 Pro", "type": "main", "index": 0 } ]] },
+    "Replicate Imagen 4 Pro": { "main": [[ { "node": "Update TaskDB Image Data", "type": "main", "index": 0 } ]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": [{ "id": "agent-10", "name": "image-generator" }],
+  "versionId": "v1.0-week5"
+}

@@ -1,0 +1,66 @@
+{
+  "name": "11-Vision-Guard",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "webhook-trigger",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhookTrigger",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "webhookId": "vision-guard-11"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ATT System - Vision Guard Agent #11\n// OpenAI Vision similarity detection vs. top-100 MBA catalog\n\nconst { trackCost } = require('../../shared/cost-tracker');\nconst { errorHandler } = require('../../shared/error-handler');\n\nasync function checkSimilarityVision(imageUrl, catalogImages) {\n  // Simulate OpenAI Vision API comparison (replace with actual implementation)\n  const similarityChecks = catalogImages.map(catalogImg => {\n    const similarity = Math.random() * 100;\n    return {\n      catalog_image: catalogImg,\n      similarity_score: similarity.toFixed(1),\n      is_similar: similarity > 85\n    };\n  });\n  \n  const maxSimilarity = Math.max(...similarityChecks.map(c => parseFloat(c.similarity_score)));\n  \n  return {\n    total_comparisons: catalogImages.length,\n    max_similarity: maxSimilarity.toFixed(1),\n    similar_matches: similarityChecks.filter(c => c.is_similar),\n    passes_similarity: maxSimilarity <= 85,\n    detailed_results: similarityChecks.slice(0, 5) // Top 5 for logging\n  };\n}\n\nasync function main() {\n  const inputData = $input.first().json;\n  const niche = inputData.niche;\n  const imageUrl = inputData.image_url;\n  \n  console.log(`👁️ Vision guard checking: ${niche}`);\n  \n  try {\n    // Only proceed if image was generated\n    if (!imageUrl) {\n      console.log(`⏭️ Skipping vision check - no image URL available`);\n      return [{ json: { skipped: true, reason: 'no_image_url', niche } }];\n    }\n    \n    // Simulate top-100 MBA catalog (replace with actual catalog)\n    const mbaCatalog = Array.from({length: 100}, (_, i) => \n      `https://example.com/mba-catalog/design-${i+1}.jpg`\n    );\n    \n    // Track Vision API cost (significant for 100 comparisons)\n    await trackCost('vision_similarity', 0.45, `Agent #11 - Vision similarity check for ${niche}`);\n    \n    const similarityResults = await checkSimilarityVision(imageUrl, mbaCatalog);\n    \n    const visionStatus = similarityResults.passes_similarity ? 'approved' : 'rejected';\n    const rejectReason = !similarityResults.passes_similarity ? \n      `High similarity (${similarityResults.max_similarity}%) to existing designs` : null;\n    \n    const result = {\n      niche,\n      image_url: imageUrl,\n      vision_check: similarityResults,\n      vision_status: visionStatus,\n      can_proceed: visionStatus === 'approved',\n      rejection_reason: rejectReason,\n      agent_source: 'vision-guard-11',\n      checked_at: new Date().toISOString()\n    };\n    \n    console.log(`✅ Vision Status: ${visionStatus} (Max similarity: ${similarityResults.max_similarity}%)`);\n    \n    // Success heartbeat\n    await trackCost('system_health', 0.001, 'Agent #11 - Success heartbeat');\n    \n    return [{ json: result }];\n    \n  } catch (error) {\n    console.error('❌ Vision Guard error:', error);\n    await errorHandler('vision-guard-11', error, { niche });\n    throw error;\n  }\n}\n\nreturn await main();"
+      },
+      "id": "vision-guard-code",
+      "name": "OpenAI Vision Similarity Check",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [440, 300]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "{{ $env.NOTION_DATABASE_ID }}",
+          "mode": "id"
+        },
+        "pageId": "={{ $json.niche }}",
+        "properties": {
+          "Vision Status": {
+            "type": "select",
+            "select": { "name": "={{ $json.vision_status }}" }
+          },
+          "Max Similarity": {
+            "type": "number",
+            "number": "={{ parseFloat($json.vision_check.max_similarity) }}"
+          },
+          "Similar Matches": {
+            "type": "number",
+            "number": "={{ $json.vision_check.similar_matches.length }}"
+          },
+          "Rejection Reason": {
+            "type": "text",
+            "text": [{ "type": "text", "text": "={{ $json.rejection_reason || 'N/A' }}" }]
+          }
+        }
+      },
+      "id": "update-vision-status",
+      "name": "Update Vision Status",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2,
+      "position": [640, 300],
+      "retryOnFail": true
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": { "main": [[ { "node": "OpenAI Vision Similarity Check", "type": "main", "index": 0 } ]] },
+    "OpenAI Vision Similarity Check": { "main": [[ { "node": "Update Vision Status", "type": "main", "index": 0 } ]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": [{ "id": "agent-11", "name": "vision-guard" }],
+  "versionId": "v1.0-week5"
+}

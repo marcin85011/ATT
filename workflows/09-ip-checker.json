@@ -1,0 +1,66 @@
+{
+  "name": "09-IP-Checker",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "webhook-trigger",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhookTrigger",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "webhookId": "ip-checker-09"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ATT System - IP Checker Agent #09\n// USPTO + EUIPO trademark check; block duplicates; record status in TaskDB\n\nconst { trackCost } = require('../../shared/cost-tracker');\nconst { isDuplicateTopic } = require('../../shared/utils');\nconst { errorHandler } = require('../../shared/error-handler');\n\nasync function checkTrademarkUSPTO(searchTerms) {\n  // Simulate USPTO API call (replace with actual implementation)\n  const usptoResults = {\n    search_terms: searchTerms,\n    total_hits: Math.floor(Math.random() * 5),\n    active_trademarks: Math.floor(Math.random() * 2),\n    risk_level: Math.random() > 0.8 ? 'high' : Math.random() > 0.5 ? 'medium' : 'low'\n  };\n  return usptoResults;\n}\n\nasync function checkTrademarkEUIPO(searchTerms) {\n  // Simulate EUIPO API call (replace with actual implementation)\n  const euipoResults = {\n    search_terms: searchTerms,\n    total_hits: Math.floor(Math.random() * 3),\n    active_trademarks: Math.floor(Math.random() * 1),\n    risk_level: Math.random() > 0.8 ? 'high' : Math.random() > 0.5 ? 'medium' : 'low'\n  };\n  return euipoResults;\n}\n\nasync function main() {\n  const inputData = $input.first().json;\n  const niche = inputData.niche;\n  const designPrompt = inputData.replicate_ready?.prompt || '';\n  \n  console.log(`🔍 IP checking for: ${niche}`);\n  \n  try {\n    // Check for duplicate IP checks\n    if (await isDuplicateTopic(`${niche}_ip_check`)) {\n      console.log(`⏭️ Skipping duplicate IP check: ${niche}`);\n      return [{ json: { skipped: true, reason: 'duplicate_ip_check', niche } }];\n    }\n    \n    // Track IP checking costs\n    await trackCost('ip_checking', 0.05, `Agent #09 - IP checking for ${niche}`);\n    \n    // Extract search terms from prompt and niche\n    const searchTerms = [niche, ...designPrompt.split(' ').filter(w => w.length > 4).slice(0, 5)];\n    \n    // Perform trademark checks\n    const usptoCheck = await checkTrademarkUSPTO(searchTerms);\n    const euipoCheck = await checkTrademarkEUIPO(searchTerms);\n    \n    // Calculate overall IP risk\n    const totalActiveMarks = usptoCheck.active_trademarks + euipoCheck.active_trademarks;\n    const highRiskFlags = [usptoCheck.risk_level, euipoCheck.risk_level].filter(r => r === 'high').length;\n    \n    let ipStatus = 'approved';\n    if (totalActiveMarks > 0 || highRiskFlags > 0) {\n      ipStatus = 'flagged';\n    }\n    if (totalActiveMarks > 2 || highRiskFlags > 1) {\n      ipStatus = 'rejected';\n    }\n    \n    const result = {\n      niche,\n      ip_check_results: {\n        uspto: usptoCheck,\n        euipo: euipoCheck,\n        search_terms: searchTerms,\n        total_active_marks: totalActiveMarks,\n        overall_risk: highRiskFlags > 0 ? 'high' : totalActiveMarks > 0 ? 'medium' : 'low'\n      },\n      ip_status: ipStatus,\n      can_proceed: ipStatus === 'approved',\n      agent_source: 'ip-checker-09',\n      checked_at: new Date().toISOString()\n    };\n    \n    console.log(`✅ IP Status: ${ipStatus} (Active marks: ${totalActiveMarks})`);\n    \n    // Success heartbeat\n    await trackCost('system_health', 0.001, 'Agent #09 - Success heartbeat');\n    \n    return [{ json: result }];\n    \n  } catch (error) {\n    console.error('❌ IP Checker error:', error);\n    await errorHandler('ip-checker-09', error, { niche });\n    throw error;\n  }\n}\n\nreturn await main();"
+      },
+      "id": "ip-checker-code",
+      "name": "USPTO & EUIPO Checks",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [440, 300]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "{{ $env.NOTION_DATABASE_ID }}",
+          "mode": "id"
+        },
+        "pageId": "={{ $json.niche }}",
+        "properties": {
+          "IP Status": {
+            "type": "select",
+            "select": { "name": "={{ $json.ip_status }}" }
+          },
+          "IP Risk Level": {
+            "type": "select",
+            "select": { "name": "={{ $json.ip_check_results.overall_risk }}" }
+          },
+          "Active Trademarks": {
+            "type": "number",
+            "number": "={{ $json.ip_check_results.total_active_marks }}"
+          },
+          "IP Check Data": {
+            "type": "text",
+            "text": [{ "type": "text", "text": "={{ JSON.stringify($json.ip_check_results) }}" }]
+          }
+        }
+      },
+      "id": "update-ip-status",
+      "name": "Update TaskDB IP Status",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2,
+      "position": [640, 300],
+      "retryOnFail": true
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": { "main": [[ { "node": "USPTO & EUIPO Checks", "type": "main", "index": 0 } ]] },
+    "USPTO & EUIPO Checks": { "main": [[ { "node": "Update TaskDB IP Status", "type": "main", "index": 0 } ]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": [{ "id": "agent-09", "name": "ip-checker" }],
+  "versionId": "v1.0-week5"
+}
