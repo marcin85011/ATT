@@ -26,6 +26,7 @@ The ATT System is a comprehensive n8n-based workflow automation platform for gen
    - OpenAI API (GPT-4o Vision)
    - Notion API + Database
    - Google Trends (optional cookie)
+   - OPPORTUNITY_SCORE_THRESHOLD (configurable analyzer threshold, default: 70)
 
 3. **n8n Import**
    ```bash
