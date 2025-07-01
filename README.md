@@ -277,6 +277,18 @@ export SMOKE_TEST_COST_THRESHOLD=0.10  # Alert if exceeded
 npm run smoke-test:real                 # Monitor real API costs
 ```
 
+### 🔔 Notifications
+CI workflows send alerts on test failures and cost overruns.
+
+| Secret | Purpose | Example |
+|--------|---------|---------|
+| `SLACK_WEBHOOK_URL` | Slack notifications | `https://hooks.slack.com/services/...` |
+| `EMAIL_TO` | Notification recipient | `ops@company.com` |
+| `EMAIL_FROM` | Gmail sender address | `alerts@company.com` |
+| `EMAIL_PASSWORD` | Gmail app password | `abcd efgh ijkl mnop` |
+
+**Setup**: Add these to [Repository Secrets](https://github.com/marcin85011/ATT/settings/secrets/actions).
+
 ## Week-6 Quality Control Agents (Alpha)
 
 ### QC Pipeline Overview
