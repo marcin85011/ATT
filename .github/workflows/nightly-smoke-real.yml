@@ -1,0 +1,49 @@
+name: Nightly Real-Mode Smoke Tests
+
+on:
+  schedule:
+    - cron: '0 2 * * *'  # Daily at 02:00 UTC
+  workflow_dispatch:     # Allow manual trigger
+
+env:
+  SMOKE_TEST_COST_THRESHOLD: 0.02
+
+jobs:
+  nightly-real-smoke:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm install
+      
+    - name: Run real-mode smoke tests (agents #28, #29 only)
+      env:
+        GRAMMARLY_API_KEY: ${{ secrets.GRAMMARLY_API_KEY }}
+      run: npm run smoke-test:real
+      
+    - name: Check for cost overrun
+      run: |
+        if grep -q "WARNING.*cost exceeded" SMOKE_TEST_RESULTS.md; then
+          echo "💰 ALERT: Nightly smoke tests exceeded cost threshold"
+          exit 1
+        fi
+      
+    - name: Upload nightly smoke test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: nightly-smoke-results-${{ github.run_number }}
+        path: |
+          SMOKE_TEST_RESULTS.md
+          cost-tracking.json
+          error-log.jsonl
+        retention-days: 7

@@ -1,5 +1,7 @@
 # ATT System - Automated Trend-to-Tee v1.0
 
+[![QC Smoke Tests](https://github.com/marcin85011/ATT/actions/workflows/qc-smoke-tests.yml/badge.svg?branch=main)](https://github.com/marcin85011/ATT/actions/workflows/qc-smoke-tests.yml)
+
 ## Overview
 The ATT System is a comprehensive n8n-based workflow automation platform for generating trending t-shirt designs with market validation and cost optimization.
 
