@@ -1,5 +1,5 @@
 {
-  "version": "1.0",
+  "version": "1.2",
   "schemas": {
     "TaskDB": {
       "description": "Main task tracking database for niche processing pipeline",
@@ -201,6 +201,56 @@
           "description": "Additional health monitoring notes"
         }
       }
+    },
+    "QualityControlDB": {
+      "description": "Quality control tracking for design validation pipeline",
+      "properties": {
+        "Design ID": {
+          "type": "title",
+          "required": true,
+          "description": "Unique design identifier"
+        },
+        "Agent": {
+          "type": "select",
+          "options": ["spell-check-28", "contrast-analyzer-29", "readability-scorer-30", "mockup-generator-31"],
+          "required": true,
+          "description": "QC agent that processed this design"
+        },
+        "Status": {
+          "type": "select",
+          "options": ["pass", "fail", "warning", "pending"],
+          "required": true,
+          "description": "QC validation result"
+        },
+        "Score": {
+          "type": "number",
+          "description": "Quality score (0-100)"
+        },
+        "Results": {
+          "type": "text",
+          "description": "Detailed QC analysis results (JSON)"
+        },
+        "Issues": {
+          "type": "text",
+          "description": "List of issues found (if any)"
+        },
+        "Recommendations": {
+          "type": "text",
+          "description": "Improvement recommendations"
+        },
+        "Processing Time": {
+          "type": "number",
+          "description": "Processing time in milliseconds"
+        },
+        "Cost": {
+          "type": "number",
+          "description": "API cost for this QC check"
+        },
+        "Created At": {
+          "type": "created_time",
+          "description": "When QC was performed"
+        }
+      }
     }
   },
   "relationships": {
@@ -211,6 +261,10 @@
     "TaskDB_to_CompetitorsDB": {
       "type": "one_to_many",
       "description": "Each task may have multiple competitor analyses"
+    },
+    "TaskDB_to_QualityControlDB": {
+      "type": "one_to_many",
+      "description": "Each task may have multiple QC checks"
     }
   },
   "validation_rules": {
@@ -242,6 +296,10 @@
     "agent_07_perplexity": ["Cultural Insights", "Market Readiness"],
     "agent_09_trademark": ["IP Status", "IP Risk Level"],
     "agent_10_replicate": ["Image URL", "Generation Cost"],
-    "agent_11_vision": ["Vision Status", "Max Similarity"]
+    "agent_11_vision": ["Vision Status", "Max Similarity"],
+    "agent_28_grammarly": ["Score", "Results", "Issues"],
+    "agent_29_contrast": ["Status", "Score", "Results"],
+    "agent_30_readability": ["Status", "Score", "Recommendations"],
+    "agent_31_mockup": ["Status", "Results", "Cost"]
   }
 }

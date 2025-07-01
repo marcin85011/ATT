@@ -1,0 +1,212 @@
+{
+  "name": "Agent #30 - Readability Scorer QC",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "readability-scorer",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [140, 300],
+      "webhookId": "readability-scorer-30"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Agent #30 Readability Scorer - Input Processing\n// TODO: Implement full processing logic in Phase 6-β\n\nconst { ReadabilityClient } = require('../clients/readability-client');\nconst { sanitizeText } = require('../shared/utils');\n\nconst inputData = $input.first().json;\nconst textContent = inputData.text || inputData.content || inputData.title || '';\nconst designId = inputData.design_id || 'unknown';\nconst description = inputData.description || '';\n\n// Combine all text content for analysis\nconst fullText = [textContent, description].filter(Boolean).join(' ');\n\nif (!fullText.trim()) {\n  throw new Error('No text content provided for readability analysis');\n}\n\n// Initialize client\nconst client = new ReadabilityClient();\n\nconsole.log(`📖 Agent #30 processing readability analysis for design: ${designId}`);\nconsole.log(`📝 Text to analyze: ${fullText.substring(0, 100)}...`);\n\nreturn {\n  design_id: designId,\n  text_content: fullText,\n  original_text: textContent,\n  description: description,\n  options: inputData.options || {},\n  timestamp: new Date().toISOString(),\n  agent: 'readability-scorer-30'\n};"
+      },
+      "id": "process-input",
+      "name": "Process Input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [340, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Agent #30 - Text Preprocessing\n// TODO: Enhance text preprocessing in Phase 6-β\n\nconst { sanitizeText } = require('../shared/utils');\nconst data = $input.first().json;\n\n// Clean and prepare text for analysis\nconst cleanedText = sanitizeText(data.text_content, {\n  maxLength: 2000,\n  removeHtml: true,\n  removeEmojis: false // Keep emojis for t-shirt context\n});\n\n// Additional t-shirt specific preprocessing\nlet processedText = cleanedText\n  .replace(/\\s+/g, ' ') // Normalize whitespace\n  .replace(/([.!?])\\s*([A-Z])/g, '$1 $2') // Ensure proper sentence spacing\n  .trim();\n\nconsole.log(`🔧 Text preprocessed: ${processedText.length} characters`);\nconsole.log(`📄 Original: ${data.text_content.length} chars → Processed: ${processedText.length} chars`);\n\nreturn {\n  ...data,\n  processed_text: processedText,\n  text_stats: {\n    original_length: data.text_content.length,\n    processed_length: processedText.length,\n    cleaned: cleanedText !== data.text_content\n  }\n};"
+      },
+      "id": "preprocess-text",
+      "name": "Preprocess Text",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [540, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Agent #30 - Readability Analysis Execution\n// TODO: Complete implementation in Phase 6-β\n\nconst { ReadabilityClient } = require('../clients/readability-client');\nconst { errorHandler } = require('../shared/error-handler');\n\nconst data = $input.first().json;\n\ntry {\n  const client = new ReadabilityClient();\n  \n  // Perform readability analysis\n  const readabilityResult = await client.scoreReadability(data.processed_text, data.options);\n  \n  console.log(`✅ Readability analysis completed for ${data.design_id}`);\n  console.log(`📊 Status: ${readabilityResult.status}`);\n  console.log(`📖 Flesch Reading Ease: ${readabilityResult.flesch_reading_ease}`);\n  console.log(`🎓 Grade Level: ${readabilityResult.flesch_kincaid_grade}`);\n  console.log(`🎯 Readability Score: ${readabilityResult.readability_score}/10`);\n  console.log(`👥 Target Audience: ${readabilityResult.target_audience}`);\n  \n  return {\n    ...data,\n    qc_result: readabilityResult,\n    success: true,\n    completed_at: new Date().toISOString()\n  };\n  \n} catch (error) {\n  console.error(`❌ Readability analysis failed for ${data.design_id}:`, error.message);\n  \n  await errorHandler('readability-scorer-30', error, {\n    design_id: data.design_id,\n    text_length: data.processed_text?.length || 0\n  });\n  \n  return {\n    ...data,\n    qc_result: {\n      agent: 'readability-scorer-30',\n      status: 'fail',\n      error: error.message,\n      processing_time_ms: 0,\n      cost: 0\n    },\n    success: false,\n    error: error.message,\n    completed_at: new Date().toISOString()\n  };\n}"
+      },
+      "id": "readability-analysis-execution",
+      "name": "Readability Analysis Execution",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [740, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [],
+          "dateTime": [],
+          "number": [],
+          "string": [
+            {
+              "id": "success-check",
+              "leftValue": "={{ $json.success }}",
+              "rightValue": "true",
+              "operation": "equal"
+            }
+          ]
+        },
+        "combineOperation": "all"
+      },
+      "id": "check-success",
+      "name": "Check Success",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [940, 300]
+    },
+    {
+      "parameters": {
+        "authentication": "headerAuth",
+        "resource": "databaseItem",
+        "operation": "create",
+        "databaseId": "={{ $env.NOTION_QC_DATABASE_ID }}",
+        "simple": false,
+        "properties": {\n          \"metaData\": [\n            {\n              \"key\": \"Design ID\",\n              \"type\": \"title\",\n              \"value\": \"={{ $json.design_id }}\"\n            },\n            {\n              \"key\": \"Agent\",\n              \"type\": \"select\",\n              \"value\": \"readability-scorer-30\"\n            },\n            {\n              \"key\": \"Status\",\n              \"type\": \"select\",\n              \"value\": \"={{ $json.qc_result.status }}\"\n            },\n            {\n              \"key\": \"Score\",\n              \"type\": \"number\",\n              \"value\": \"={{ $json.qc_result.readability_score || 0 }}\"\n            },\n            {\n              \"key\": \"Results\",\n              \"type\": \"rich_text\",\n              \"value\": \"={{ JSON.stringify($json.qc_result) }}\"\n            },\n            {\n              \"key\": \"Issues\",\n              \"type\": \"rich_text\",\n              \"value\": \"={{ $json.qc_result.flesch_kincaid_grade > 8 ? 'Text may be too complex' : '' }}\"\n            },\n            {\n              \"key\": \"Recommendations\",\n              \"type\": \"rich_text\",\n              \"value\": \"={{ $json.qc_result.recommendations ? $json.qc_result.recommendations.join('; ') : '' }}\"\n            },\n            {\n              \"key\": \"Processing Time\",\n              \"type\": \"number\",\n              \"value\": \"={{ $json.qc_result.processing_time_ms || 0 }}\"\n            },\n            {\n              \"key\": \"Cost\",\n              \"type\": \"number\",\n              \"value\": \"={{ $json.qc_result.cost || 0 }}\"\n            }\n          ]\n        }
+      },
+      "id": "save-to-notion",
+      "name": "Save to Notion QC DB",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2,
+      "position": [1140, 200]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Agent #30 - Error Handling and Logging\n// TODO: Enhance error handling in Phase 6-β\n\nconst data = $input.first().json;\n\nconsole.error(`❌ Agent #30 failed for design: ${data.design_id}`);\nconsole.error(`Error: ${data.error}`);\n\n// Log to error tracking system\nconst errorEntry = {\n  agent: 'readability-scorer-30',\n  design_id: data.design_id,\n  error: data.error,\n  timestamp: new Date().toISOString(),\n  text_length: data.processed_text?.length || 0,\n  retry_count: data.retry_count || 0\n};\n\nconsole.log('Error entry:', JSON.stringify(errorEntry, null, 2));\n\nreturn {\n  ...data,\n  error_logged: true,\n  error_entry: errorEntry\n};"
+      },
+      "id": "handle-error",
+      "name": "Handle Error",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1140, 400]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({\n  agent: 'readability-scorer-30',\n  design_id: $json.design_id,\n  success: $json.success,\n  status: $json.qc_result.status,\n  flesch_reading_ease: $json.qc_result.flesch_reading_ease,\n  flesch_kincaid_grade: $json.qc_result.flesch_kincaid_grade,\n  readability_score: $json.qc_result.readability_score,\n  target_audience: $json.qc_result.target_audience,\n  recommendations: $json.qc_result.recommendations,\n  result: $json.qc_result,\n  timestamp: $json.completed_at\n}) }}"
+      },
+      "id": "respond-webhook",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1340, 300]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Process Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Input": {
+      "main": [
+        [
+          {
+            "node": "Preprocess Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preprocess Text": {
+      "main": [
+        [
+          {
+            "node": "Readability Analysis Execution",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Readability Analysis Execution": {
+      "main": [
+        [
+          {
+            "node": "Check Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Success": {
+      "main": [
+        [
+          {
+            "node": "Save to Notion QC DB",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Handle Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save to Notion QC DB": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Handle Error": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "1.0-week6-alpha",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "att-system-agent-30"
+  },
+  "id": "agent-30-readability-scorer",
+  "tags": [
+    {
+      "createdAt": "2024-12-30T00:00:00.000Z",
+      "updatedAt": "2024-12-30T00:00:00.000Z",
+      "id": "qc-agents",
+      "name": "QC Agents"
+    }
+  ]
+}
