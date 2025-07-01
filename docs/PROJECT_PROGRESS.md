@@ -12,3 +12,11 @@ Added QC spec (docs/week6-qc-spec.md)
 Stub workflows #28-31 & client modules (Grammarly, contrast, readability, mockup)
 
 🛠️ Next: implement QC agents (#28-31) and integrate new "QualityControlDB" in Notion.
+
+2025-07-01 – Week-6 β QC live
+
+✅ v1.0-week6-beta: Full QC pipeline (#28-31) now in production with real API integrations, cost tracking and smoke tests.
+
+✅ Updated shared modules, workflows, clients and README.
+
+🛠️ Next: monitor live runs & optimise performance thresholds.
