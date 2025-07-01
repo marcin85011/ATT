@@ -9,6 +9,11 @@ const fs = require('fs').promises;
 const path = require('path');
 require('dotenv').config();
 
+// Parse command line arguments for real mode
+const args = process.argv.slice(2);
+const forceRealMode = args.includes('--real') || args.includes('--production');
+const costThreshold = parseFloat(process.env.SMOKE_TEST_COST_THRESHOLD) || 0.05;
+
 const { testGrammarlyAgent } = require('./agent-28-smoke');
 const { testContrastAgent } = require('./agent-29-smoke');
 const { testReadabilityAgent } = require('./agent-30-smoke');
@@ -18,8 +23,11 @@ async function runSmokeTests() {
   const startTime = Date.now();
   console.log('🧪 ATT System QC Smoke Tests - Starting...\n');
   
-  // Set to mock mode for safety
-  process.env.MOCK_MODE = 'true';
+  // Set mode based on arguments
+  if (!forceRealMode) {
+    process.env.MOCK_MODE = 'true';
+  }
+  console.log(`🎯 Running in ${forceRealMode ? 'REAL' : 'MOCK'} mode\n`);
   
   const testRunners = [
     { name: 'agent-28-grammarly', fn: testGrammarlyAgent },
@@ -30,7 +38,7 @@ async function runSmokeTests() {
   
   const results = {
     timestamp: new Date().toISOString(),
-    mode: 'MOCK_MODE',
+    mode: forceRealMode ? 'REAL_MODE' : 'MOCK_MODE',
     total_tests: testRunners.length,
     passed: 0,
     failed: 0,
@@ -92,6 +100,14 @@ async function runSmokeTests() {
   console.log(`Tests Passed: ${results.passed}/${results.total_tests}`);
   console.log(`Total Cost: $${results.total_cost.toFixed(3)}`);
   console.log(`Duration: ${results.total_duration}ms`);
+  
+  // Cost threshold alerting
+  if (results.total_cost > costThreshold) {
+    console.log(`⚠️  WARNING: Smoke test cost exceeded $${costThreshold} threshold: $${results.total_cost.toFixed(3)}`);
+    if (forceRealMode) {
+      console.log('💡 Consider adjusting SMOKE_TEST_COST_THRESHOLD environment variable');
+    }
+  }
   
   // Generate markdown report
   await generateReport(results);

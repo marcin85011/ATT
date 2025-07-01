@@ -3,6 +3,7 @@
  * Comprehensive grammar and spelling validation
  */
 
+const fetch = require('node-fetch');
 const { trackCost } = require('../shared/cost-tracker');
 const { errorHandler } = require('../shared/error-handler');
 const { validateEnvironment, sanitizeText } = require('../shared/utils');
@@ -32,7 +33,7 @@ class GrammarlyClient {
         return this._getMockResult(cleanText, startTime);
       }
 
-      // TODO: Implement actual Grammarly API integration in Phase 6-β
+      // Call Grammarly Business API
       const result = await this._callGrammarlyAPI(cleanText, options);
       
       // Track cost
@@ -47,18 +48,40 @@ class GrammarlyClient {
   }
 
   async _callGrammarlyAPI(text, options) {
-    // TODO: Implement in Phase 6-β
-    // This is a stub for the actual Grammarly Business API integration
     const requestBody = {
       text: text,
       dialect: options.dialect || 'american',
       domain: options.domain || 'creative',
       audience: options.audience || 'general',
-      goals: options.goals || ['clarity', 'engagement']
+      goals: options.goals || ['clarity', 'engagement'],
+      clientType: 'business-api',
+      suggestions: true
     };
 
-    // Placeholder for actual API call
-    throw new Error('Grammarly API integration not implemented in Phase 6-α');
+    const response = await fetch(`${this.baseUrl}/check`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${this.apiKey}`,
+        'Content-Type': 'application/json',
+        'User-Agent': 'ATT-System-QC-Agent/1.0'
+      },
+      body: JSON.stringify(requestBody)
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      throw new Error(`Grammarly API error ${response.status}: ${errorBody}`);
+    }
+
+    const result = await response.json();
+    
+    // Handle rate limiting
+    if (response.status === 429) {
+      const retryAfter = response.headers.get('Retry-After') || 60;
+      throw new Error(`Rate limit exceeded. Retry after ${retryAfter} seconds`);
+    }
+
+    return result;
   }
 
   _getMockResult(text, startTime) {
@@ -105,22 +128,47 @@ class GrammarlyClient {
   }
 
   _formatResult(apiResult, startTime) {
-    // TODO: Implement in Phase 6-β
-    // Format the actual Grammarly API response
+    // Format the Grammarly API response to our standard format
     const processingTime = Date.now() - startTime;
     
-    return {
+    // Extract corrections from Grammarly response
+    const corrections = (apiResult.alerts || []).map(alert => ({
+      type: alert.category === 'Spelling' ? 'spelling' : 'grammar',
+      original: alert.text,
+      suggested: alert.replacements?.[0] || '',
+      confidence: alert.impact === 'high' ? 0.99 : alert.impact === 'medium' ? 0.85 : 0.70,
+      position: {
+        start: alert.begin,
+        end: alert.end
+      },
+      description: alert.explanation
+    }));
+
+    // Calculate scores based on Grammarly response
+    const spellingErrors = corrections.filter(c => c.type === 'spelling').length;
+    const grammarScore = Math.max(0, 100 - (corrections.length * 3)); // Penalize each issue
+    const clarityScore = apiResult.scores?.clarity || 90;
+    const engagementScore = apiResult.scores?.engagement || 85;
+    
+    const formatted = {
       agent: this.agentId,
-      status: this._determineStatus(apiResult),
-      spelling_errors: apiResult.spelling_errors || 0,
-      grammar_score: apiResult.grammar_score || 0,
-      clarity_score: apiResult.clarity_score || 0,
-      engagement_score: apiResult.engagement_score || 0,
-      corrections: apiResult.corrections || [],
+      status: this._determineStatus({
+        spelling_errors: spellingErrors,
+        grammar_score: grammarScore,
+        clarity_score: clarityScore,
+        engagement_score: engagementScore
+      }),
+      spelling_errors: spellingErrors,
+      grammar_score: grammarScore,
+      clarity_score: clarityScore,
+      engagement_score: engagementScore,
+      corrections: corrections,
       processing_time_ms: processingTime,
       cost: 0.001,
       mock: false
     };
+
+    return formatted;
   }
 
   _determineStatus(result) {
@@ -139,11 +187,38 @@ class GrammarlyClient {
         return { status: 'healthy', mode: 'mock' };
       }
       
-      // TODO: Implement actual health check in Phase 6-β
-      return { status: 'healthy', mode: 'production' };
+      // Test API connectivity with minimal request
+      const testResponse = await fetch(`${this.baseUrl}/health`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${this.apiKey}`,
+          'User-Agent': 'ATT-System-QC-Agent/1.0'
+        },
+        timeout: 5000
+      });
+
+      if (testResponse.ok) {
+        return { 
+          status: 'healthy', 
+          mode: 'production',
+          api_status: 'connected',
+          rate_limit_remaining: testResponse.headers.get('X-RateLimit-Remaining') || 'unknown'
+        };
+      } else {
+        return { 
+          status: 'degraded', 
+          mode: 'production',
+          api_status: 'error',
+          error: `HTTP ${testResponse.status}`
+        };
+      }
       
     } catch (error) {
-      return { status: 'unhealthy', error: error.message };
+      return { 
+        status: 'unhealthy', 
+        error: error.message,
+        mode: 'production'
+      };
     }
   }
 }

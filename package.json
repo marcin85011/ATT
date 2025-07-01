@@ -10,7 +10,9 @@
     "health-check": "node scripts/health-check.js",
     "cost-summary": "node -e \"require('./shared/cost-tracker.js').getDailySummary().then(console.log)\"",
     "error-stats": "node -e \"require('./shared/error-handler.js').getErrorStats().then(console.log)\"",
-    "smoke-test": "node scripts/smoke/smoke-test-runner.js"
+    "smoke-test": "node scripts/smoke/smoke-test-runner.js",
+    "smoke-test:mock": "node scripts/smoke/smoke-test-runner.js",
+    "smoke-test:real": "MOCK_MODE=false node scripts/smoke/smoke-test-runner.js --real"
   },
   "dependencies": {
     "dotenv": "^17.0.0",

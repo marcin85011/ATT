@@ -3,6 +3,7 @@
  * Generate realistic t-shirt mockups for marketing and preview
  */
 
+const fetch = require('node-fetch');
 const { trackCost } = require('../shared/cost-tracker');
 const { errorHandler } = require('../shared/error-handler');
 const { validateEnvironment, generateId } = require('../shared/utils');
@@ -29,7 +30,7 @@ class MockupClient {
         return this._getMockResult(designImageUrl, startTime);
       }
 
-      // TODO: Implement actual Placeit API integration in Phase 6-β
+      // Call Placeit API with asynchronous polling
       const result = await this._callPlaceitAPI(designImageUrl, options);
       
       // Track cost - $0.01 per mockup set
@@ -44,20 +45,192 @@ class MockupClient {
   }
 
   async _callPlaceitAPI(designImageUrl, options) {
-    // TODO: Implement in Phase 6-β
-    // This will integrate with Placeit API for mockup generation
-    
     const requestBody = {
       design_url: designImageUrl,
       garment_type: options.garmentType || 'unisex_tshirt',
       garment_color: options.garmentColor || 'black',
       mockup_types: options.mockupTypes || ['front_view', 'lifestyle', 'flat_lay'],
       resolution: options.resolution || '1200x1200',
+      format: options.format || 'PNG',
+      webhook_url: options.webhookUrl // Optional webhook for async completion
+    };
+
+    // Step 1: Submit mockup generation job
+    const submitResponse = await fetch(`${this.baseUrl}/mockups`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${this.apiKey}`,
+        'Content-Type': 'application/json',
+        'User-Agent': 'ATT-System-QC-Agent/1.0'
+      },
+      body: JSON.stringify(requestBody)
+    });
+
+    if (!submitResponse.ok) {
+      const errorBody = await submitResponse.text();
+      throw new Error(`Placeit API error ${submitResponse.status}: ${errorBody}`);
+    }
+
+    const submitResult = await submitResponse.json();
+    const jobId = submitResult.job_id;
+
+    if (!jobId) {
+      throw new Error('No job ID returned from Placeit API');
+    }
+
+    // Step 2: Poll for completion with exponential backoff
+    const maxPollingTime = 300000; // 5 minutes max
+    const startPolling = Date.now();
+    const pollingInterval = 2000; // Start with 2 seconds
+    let currentInterval = pollingInterval;
+    
+    while (Date.now() - startPolling < maxPollingTime) {
+      await this._sleep(currentInterval);
+      
+      const statusResponse = await fetch(`${this.baseUrl}/mockups/${jobId}/status`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${this.apiKey}`,
+          'User-Agent': 'ATT-System-QC-Agent/1.0'
+        }
+      });
+
+      if (!statusResponse.ok) {
+        throw new Error(`Status check failed: ${statusResponse.status}`);
+      }
+
+      const statusResult = await statusResponse.json();
+      
+      if (statusResult.status === 'completed') {
+        // Get the final results
+        return await this._fetchMockupResults(jobId);
+      } else if (statusResult.status === 'failed') {
+        throw new Error(`Mockup generation failed: ${statusResult.error || 'Unknown error'}`);
+      }
+      
+      // Exponential backoff - increase interval but cap at 30 seconds
+      currentInterval = Math.min(currentInterval * 1.5, 30000);
+    }
+
+    throw new Error('Mockup generation timed out after 5 minutes');
+  }
+
+  async _fetchMockupResults(jobId) {
+    const resultResponse = await fetch(`${this.baseUrl}/mockups/${jobId}/results`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${this.apiKey}`,
+        'User-Agent': 'ATT-System-QC-Agent/1.0'
+      }
+    });
+
+    if (!resultResponse.ok) {
+      throw new Error(`Failed to fetch results: ${resultResponse.status}`);
+    }
+
+    const results = await resultResponse.json();
+    
+    return {
+      job_id: jobId,
+      mockups: results.mockups || [],
+      design_url: results.design_url,
+      total_processing_time: results.processing_time_ms,
+      placeit_cost: results.cost || 0.01
+    };
+  }
+
+  _sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  async _callPlaceitSingleAPI(designImageUrl, mockupType, options) {
+    const requestBody = {
+      design_url: designImageUrl,
+      mockup_type: mockupType,
+      garment_type: options.garmentType || 'unisex_tshirt',
+      garment_color: options.garmentColor || 'black',
+      resolution: options.resolution || '1200x1200',
       format: options.format || 'PNG'
     };
 
-    // Placeholder for actual API call
-    throw new Error('Placeit API integration not implemented in Phase 6-α');
+    // Submit single mockup generation job
+    const submitResponse = await fetch(`${this.baseUrl}/mockups/single`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${this.apiKey}`,
+        'Content-Type': 'application/json',
+        'User-Agent': 'ATT-System-QC-Agent/1.0'
+      },
+      body: JSON.stringify(requestBody)
+    });
+
+    if (!submitResponse.ok) {
+      const errorBody = await submitResponse.text();
+      throw new Error(`Placeit single mockup error ${submitResponse.status}: ${errorBody}`);
+    }
+
+    const result = await submitResponse.json();
+    
+    // For single mockups, response might be immediate or include job_id for polling
+    if (result.mockup_url) {
+      // Immediate response
+      return {
+        mockup_type: mockupType,
+        mockup_url: result.mockup_url,
+        resolution: result.resolution || '1200x1200',
+        design_url: designImageUrl,
+        processing_time_ms: result.processing_time_ms || 0,
+        placeit_cost: result.cost || 0.005
+      };
+    } else if (result.job_id) {
+      // Needs polling - reuse the polling logic but for single mockup
+      return await this._pollSingleMockup(result.job_id, designImageUrl, mockupType);
+    } else {
+      throw new Error('Invalid response from Placeit single mockup API');
+    }
+  }
+
+  async _pollSingleMockup(jobId, designImageUrl, mockupType) {
+    const maxPollingTime = 180000; // 3 minutes for single mockup
+    const startPolling = Date.now();
+    let currentInterval = 1000; // Start with 1 second for single mockups
+    
+    while (Date.now() - startPolling < maxPollingTime) {
+      await this._sleep(currentInterval);
+      
+      const statusResponse = await fetch(`${this.baseUrl}/mockups/${jobId}/status`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${this.apiKey}`,
+          'User-Agent': 'ATT-System-QC-Agent/1.0'
+        }
+      });
+
+      if (!statusResponse.ok) {
+        throw new Error(`Single mockup status check failed: ${statusResponse.status}`);
+      }
+
+      const statusResult = await statusResponse.json();
+      
+      if (statusResult.status === 'completed') {
+        return {
+          mockup_type: mockupType,
+          mockup_url: statusResult.mockup_url,
+          resolution: statusResult.resolution || '1200x1200',
+          design_url: designImageUrl,
+          processing_time_ms: statusResult.processing_time_ms || 0,
+          placeit_cost: statusResult.cost || 0.005,
+          job_id: jobId
+        };
+      } else if (statusResult.status === 'failed') {
+        throw new Error(`Single mockup generation failed: ${statusResult.error || 'Unknown error'}`);
+      }
+      
+      // Shorter intervals for single mockups
+      currentInterval = Math.min(currentInterval * 1.3, 5000);
+    }
+
+    throw new Error('Single mockup generation timed out after 3 minutes');
   }
 
   _getMockResult(designImageUrl, startTime) {
@@ -106,22 +279,32 @@ class MockupClient {
   }
 
   _formatResult(apiResult, startTime) {
-    // TODO: Implement in Phase 6-β
-    // Format the actual Placeit API response
+    // Format the Placeit API response to our standard format
     const processingTime = Date.now() - startTime;
+    
+    // Transform Placeit mockups to our format
+    const formattedMockups = (apiResult.mockups || []).map(mockup => ({
+      type: mockup.type || 'unknown',
+      url: mockup.image_url || mockup.url,
+      resolution: mockup.resolution || '1200x1200',
+      garment_color: mockup.garment_color || 'black',
+      description: mockup.description || `${mockup.type || 'Mockup'} variation`,
+      placeit_id: mockup.id
+    }));
     
     return {
       agent: this.agentId,
       status: this._determineStatus(apiResult),
-      mockups_generated: apiResult.mockups?.length || 0,
-      mockup_urls: apiResult.mockups || [],
+      mockups_generated: formattedMockups.length,
+      mockup_urls: formattedMockups,
       design_url: apiResult.design_url,
-      total_variations: apiResult.mockups?.length || 0,
+      total_variations: formattedMockups.length,
       quality_score: this._calculateQualityScore(apiResult),
       processing_time_ms: processingTime,
-      estimated_cost: 0.01,
+      placeit_processing_time: apiResult.total_processing_time || 0,
+      estimated_cost: apiResult.placeit_cost || 0.01,
       mock: false,
-      mockup_id: apiResult.mockup_id
+      job_id: apiResult.job_id
     };
   }
 
@@ -172,7 +355,7 @@ class MockupClient {
         return this._getSingleMockResult(designImageUrl, mockupType, startTime);
       }
 
-      // TODO: Implement single mockup generation in Phase 6-β
+      // Call Placeit API for single mockup generation
       const result = await this._callPlaceitSingleAPI(designImageUrl, mockupType, options);
       
       // Track cost for single mockup
@@ -256,8 +439,31 @@ class MockupClient {
         };
       }
       
-      // TODO: Implement actual health check in Phase 6-β
-      return { status: 'healthy', mode: 'production' };
+      // Test API connectivity with minimal request
+      const healthResponse = await fetch(`${this.baseUrl}/health`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${this.apiKey}`,
+          'User-Agent': 'ATT-System-QC-Agent/1.0'
+        },
+        timeout: 10000
+      });
+
+      if (healthResponse.ok) {
+        return { 
+          status: 'healthy', 
+          mode: 'production',
+          api_status: 'connected',
+          rate_limit_remaining: healthResponse.headers.get('X-RateLimit-Remaining') || 'unknown'
+        };
+      } else {
+        return { 
+          status: 'degraded', 
+          mode: 'production',
+          api_status: 'error',
+          error: `HTTP ${healthResponse.status}`
+        };
+      }
       
     } catch (error) {
       return { status: 'unhealthy', error: error.message };
@@ -265,10 +471,7 @@ class MockupClient {
   }
 
   // Get available mockup templates
-  async getAvailableTemplates() {
-    // TODO: Implement in Phase 6-β
-    // This would return available Placeit templates
-    
+  async getAvailableTemplates(category = null) {
     if (this.mockMode) {
       return {
         templates: [
@@ -281,7 +484,45 @@ class MockupClient {
       };
     }
     
-    throw new Error('Template fetching not implemented in Phase 6-α');
+    try {
+      const queryParams = new URLSearchParams();
+      if (category) queryParams.append('category', category);
+      queryParams.append('garment_type', 'tshirt'); // Focus on t-shirts for our use case
+      
+      const response = await fetch(`${this.baseUrl}/templates?${queryParams}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${this.apiKey}`,
+          'User-Agent': 'ATT-System-QC-Agent/1.0'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Template fetch failed: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      return {
+        templates: data.templates || [],
+        total: data.total || 0,
+        categories: data.categories || [],
+        mock: false
+      };
+      
+    } catch (error) {
+      // Fallback to basic templates if API fails
+      return {
+        templates: [
+          { id: 'unisex_tshirt_front', name: 'Unisex T-Shirt Front View', category: 'apparel' },
+          { id: 'lifestyle_casual', name: 'Casual Lifestyle', category: 'lifestyle' },
+          { id: 'flat_lay_minimal', name: 'Minimal Flat Lay', category: 'product' }
+        ],
+        total: 3,
+        error: error.message,
+        fallback: true
+      };
+    }
   }
 }
 

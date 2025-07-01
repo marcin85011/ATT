@@ -248,6 +248,33 @@ The validator compares live Notion database structures against `config/notion-sc
 - Reports schema mismatches requiring manual intervention
 - Generates `NOTION_SCHEMA_DIFF.md` with detailed results
 
+## 🧪 Quality Control Smoke Tests
+
+### Quick Start
+```bash
+npm run smoke-test        # Safe mock mode (free)
+npm run smoke-test:real   # Real APIs ($0.01-0.02 cost)
+npm test                  # Runs smoke tests in mock mode
+```
+
+### What Gets Tested
+- **Agent #28 (Grammarly)**: Spell/grammar detection accuracy
+- **Agent #29 (Contrast)**: WCAG compliance analysis  
+- **Agent #30 (Readability)**: Flesch-Kincaid scoring
+- **Agent #31 (Mockup)**: Placeit mockup generation
+
+### Results & Monitoring
+- **Results**: Auto-saved to `SMOKE_TEST_RESULTS.md`
+- **Costs**: Tracked in `cost-tracking.json`
+- **Errors**: Logged to `error-log.jsonl`
+- **CI**: Runs automatically on every push/PR
+
+### Cost Management
+```bash
+export SMOKE_TEST_COST_THRESHOLD=0.10  # Alert if exceeded
+npm run smoke-test:real                 # Monitor real API costs
+```
+
 ## Week-6 Quality Control Agents (Alpha)
 
 ### QC Pipeline Overview

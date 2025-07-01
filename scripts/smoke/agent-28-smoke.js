@@ -24,7 +24,7 @@ async function testGrammarlyAgent() {
     
     return {
       name: 'agent-28-grammarly',
-      status: result.status || 'pass',
+      status: validateAgentWorking(result),
       responseTime: Date.now() - startTime,
       cost: result.cost || 0.001,
       details: {
@@ -90,6 +90,20 @@ function validateGrammarlyResult(result) {
   }
   
   return { valid: true };
+}
+
+function validateAgentWorking(result) {
+  // Agent is working correctly if it detects the deliberate spelling errors
+  // Test text: "This is a test sentance with teh word misspelled."
+  // Expected: spelling_errors > 0 AND corrections array has entries
+  
+  if (result.mock) {
+    // In mock mode, check if it detected our deliberate errors
+    return result.spelling_errors > 0 && result.corrections && result.corrections.length > 0 ? 'pass' : 'fail';
+  } else {
+    // In real mode, same logic
+    return result.spelling_errors > 0 && result.corrections && result.corrections.length > 0 ? 'pass' : 'fail';
+  }
 }
 
 module.exports = { testGrammarlyAgent };

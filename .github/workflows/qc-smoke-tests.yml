@@ -1,0 +1,45 @@
+name: QC Smoke Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  smoke-tests:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm install
+      
+    - name: Run QC smoke tests
+      run: npm run smoke-test
+      
+    - name: Check for cost alerts
+      run: |
+        if grep -q "WARNING.*cost exceeded" SMOKE_TEST_RESULTS.md; then
+          echo "⚠️ Cost threshold exceeded in smoke tests"
+          exit 1
+        fi
+      
+    - name: Upload smoke test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: smoke-test-results-${{ github.sha }}
+        path: |
+          SMOKE_TEST_RESULTS.md
+          cost-tracking.json
+          error-log.jsonl
+        retention-days: 30
