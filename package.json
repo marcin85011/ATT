@@ -1,0 +1,42 @@
+{
+  "name": "att-system-week6-qc",
+  "version": "1.0.0-week6-beta",
+  "description": "ATT System Week 6β QC Agents - Production Ready Quality Control Pipeline",
+  "main": "index.js",
+  "scripts": {
+    "test": "node scripts/smoke/smoke-test-runner.js",
+    "test:agents": "node tests/qc-smoke-tests.js",
+    "test:integration": "node -e \"require('./tests/qc-smoke-tests.js').testIntegration()\"",
+    "health-check": "node scripts/health-check.js",
+    "cost-summary": "node -e \"require('./shared/cost-tracker.js').getDailySummary().then(console.log)\"",
+    "error-stats": "node -e \"require('./shared/error-handler.js').getErrorStats().then(console.log)\"",
+    "smoke-test": "node scripts/smoke/smoke-test-runner.js"
+  },
+  "dependencies": {
+    "dotenv": "^17.0.0",
+    "node-fetch": "^2.7.0",
+    "sharp": "^0.32.0"
+  },
+  "keywords": [
+    "att-system",
+    "quality-control",
+    "grammarly",
+    "contrast-analysis",
+    "readability",
+    "mockup-generation",
+    "placeit",
+    "wcag",
+    "accessibility",
+    "n8n",
+    "automation"
+  ],
+  "author": "ATT System",
+  "license": "PROPRIETARY",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "local"
+  }
+}
