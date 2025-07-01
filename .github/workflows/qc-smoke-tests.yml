@@ -43,3 +43,44 @@ jobs:
           cost-tracking.json
           error-log.jsonl
         retention-days: 30
+      
+    - name: Parse cost and check overrun
+      id: cost-check
+      if: always()
+      run: |
+        if [ -f SMOKE_TEST_RESULTS.md ]; then
+          if grep -q "WARNING.*cost exceeded" SMOKE_TEST_RESULTS.md; then
+            echo "overrun=true" >> $GITHUB_OUTPUT
+            COST=$(grep -o '\$[0-9.]*' SMOKE_TEST_RESULTS.md | head -1)
+            echo "cost=${COST:-unknown}" >> $GITHUB_OUTPUT
+          fi
+        fi
+
+    - name: Slack notification on failure
+      if: failure()
+      uses: 8398a7/action-slack@v3
+      with:
+        status: failure
+        text: "🚨 QC Smoke Tests FAILED on `${{ github.ref_name }}` | Commit: `${{ github.sha }}`"
+        webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+    - name: Slack notification on cost overrun
+      if: steps.cost-check.outputs.overrun == 'true'
+      uses: 8398a7/action-slack@v3
+      with:
+        status: warning
+        text: "💰 QC Smoke Tests cost overrun: ${{ steps.cost-check.outputs.cost }} | Branch: `${{ github.ref_name }}`"
+        webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+    - name: Email notification on critical failure
+      if: failure()
+      uses: dawidd6/action-send-mail@v3
+      with:
+        server_address: smtp.gmail.com
+        server_port: 587
+        username: ${{ secrets.EMAIL_FROM }}
+        password: ${{ secrets.EMAIL_PASSWORD }}
+        subject: "🚨 ATT System: QC Tests Failed"
+        body: "QC Smoke Tests failed on ${{ github.ref_name }}. Check: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+        to: ${{ secrets.EMAIL_TO }}
+        from: ${{ secrets.EMAIL_FROM }}
