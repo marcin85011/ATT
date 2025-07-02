@@ -4,20 +4,40 @@
   "description": "ATT System Week 6β QC Agents - Production Ready Quality Control Pipeline",
   "main": "index.js",
   "scripts": {
-    "test": "node scripts/smoke/smoke-test-runner.js",
+    "test": "jest",
+    "test:unit": "jest --selectProjects unit",
+    "test:integration": "jest --selectProjects integration-mock",
+    "test:integration:real": "TEST_REAL_APIS=true jest --selectProjects integration-real",
+    "test:e2e": "TEST_E2E=true jest --selectProjects e2e",
+    "test:watch": "jest --watch --selectProjects unit",
+    "test:coverage": "jest --coverage",
+    "test:cost-report": "jest --coverage && node -e \"require('./tests/utils/test-helpers.js').TestCostTracker.prototype.getCostSummary().then(console.log)\"",
+    "test:mock-server": "node tests/mock-server/api-mocks.js",
+    "test:budget-check": "node -e \"require('./tests/utils/test-helpers.js').TestCostTracker.prototype.checkBudgetLimits(0).then(console.log)\"",
     "test:agents": "node tests/qc-smoke-tests.js",
-    "test:integration": "node -e \"require('./tests/qc-smoke-tests.js').testIntegration()\"",
     "health-check": "node scripts/health-check.js",
     "cost-summary": "node -e \"require('./shared/cost-tracker.js').getDailySummary().then(console.log)\"",
     "error-stats": "node -e \"require('./shared/error-handler.js').getErrorStats().then(console.log)\"",
     "smoke-test": "node scripts/smoke/smoke-test-runner.js",
     "smoke-test:mock": "node scripts/smoke/smoke-test-runner.js",
-    "smoke-test:real": "MOCK_MODE=false node scripts/smoke/smoke-test-runner.js --real"
+    "smoke-test:real": "MOCK_MODE=false node scripts/smoke/smoke-test-runner.js --real",
+    "start:api": "node api-server.js",
+    "api": "node api-server.js"
   },
   "dependencies": {
     "dotenv": "^17.0.0",
     "node-fetch": "^2.7.0",
-    "sharp": "^0.32.0"
+    "sharp": "^0.32.0",
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "chokidar": "^3.5.3"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "@jest/globals": "^29.7.0",
+    "jest-junit": "^16.0.0",
+    "nock": "^13.4.0",
+    "supertest": "^6.3.3"
   },
   "keywords": [
     "att-system",
