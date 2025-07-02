@@ -3,10 +3,33 @@
  */
 
 const { GrammarlyClient } = require('../../clients/grammarly-client');
-const { trackCost } = require('../../shared/cost-tracker');
+const { trackCost, checkDailyBudget } = require('../../shared/cost-tracker');
 
 async function testGrammarlyAgent() {
   const startTime = Date.now();
+  
+  // Check daily budget before proceeding
+  const budgetCheck = await checkDailyBudget();
+  if (!budgetCheck.withinBudget) {
+    console.log(`⚠️ Budget limit reached - skipping Agent #28 (Grammarly). Daily spend: $${budgetCheck.dailySpend}, Limit: $${budgetCheck.budgetLimit}`);
+    
+    // Track zero-cost heartbeat to show workflow fired
+    await trackCost('spell-check-28', 0, 'Budget limit reached - skipped execution');
+    
+    return {
+      name: 'agent-28-grammarly',
+      status: 'skipped',
+      responseTime: Date.now() - startTime,
+      cost: 0,
+      details: {
+        budget_exceeded: true,
+        daily_spend: budgetCheck.dailySpend,
+        budget_limit: budgetCheck.budgetLimit,
+        remaining: budgetCheck.remaining
+      },
+      agent_id: 'spell-check-28'
+    };
+  }
   
   try {
     const client = new GrammarlyClient();

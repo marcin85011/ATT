@@ -3,10 +3,33 @@
  */
 
 const { MockupClient } = require('../../clients/mockup-client');
-const { trackCost } = require('../../shared/cost-tracker');
+const { trackCost, checkDailyBudget } = require('../../shared/cost-tracker');
 
 async function testMockupAgent() {
   const startTime = Date.now();
+  
+  // Check daily budget before proceeding
+  const budgetCheck = await checkDailyBudget();
+  if (!budgetCheck.withinBudget) {
+    console.log(`⚠️ Budget limit reached - skipping Agent #31 (Mockup). Daily spend: $${budgetCheck.dailySpend}, Limit: $${budgetCheck.budgetLimit}`);
+    
+    // Track zero-cost heartbeat to show workflow fired
+    await trackCost('mockup-generator-31', 0, 'Budget limit reached - skipped execution');
+    
+    return {
+      name: 'agent-31-mockup',
+      status: 'skipped',
+      responseTime: Date.now() - startTime,
+      cost: 0,
+      details: {
+        budget_exceeded: true,
+        daily_spend: budgetCheck.dailySpend,
+        budget_limit: budgetCheck.budgetLimit,
+        remaining: budgetCheck.remaining
+      },
+      agent_id: 'mockup-generator-31'
+    };
+  }
   
   try {
     const client = new MockupClient();

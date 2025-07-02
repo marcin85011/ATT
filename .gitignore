@@ -2,3 +2,10 @@
 node_modules/
 *.log
 .DS_Store
+
+# Runtime cost and error tracking files
+cost-tracking.json
+cost-tracking.jsonl
+error-log.json
+error-log.jsonl
+cost-tracking-test.json

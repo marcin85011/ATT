@@ -221,10 +221,59 @@ async function calculateHourlyCostRate() {
   }
 }
 
+async function checkDailyBudget() {
+  try {
+    const dailyBudget = parseFloat(process.env.DAILY_BUDGET_LIMIT) || 5.00;
+    
+    // Read cost data from JSON file
+    const jsonFile = path.join(__dirname, '../cost-tracking.json');
+    let costs = [];
+    
+    try {
+      const data = await fs.readFile(jsonFile, 'utf8');
+      costs = JSON.parse(data);
+    } catch (error) {
+      // No cost data yet, budget is available
+      return {
+        withinBudget: true,
+        remaining: dailyBudget,
+        dailySpend: 0,
+        budgetLimit: dailyBudget
+      };
+    }
+    
+    const today = new Date().toISOString().split('T')[0];
+    const todayCosts = costs.filter(c => c.date === today);
+    const dailySpend = todayCosts.reduce((sum, cost) => sum + cost.cost, 0);
+    
+    const remaining = Math.max(0, dailyBudget - dailySpend);
+    const withinBudget = dailySpend < dailyBudget;
+    
+    return {
+      withinBudget,
+      remaining: Math.round(remaining * 10000) / 10000, // Round to 4 decimal places
+      dailySpend: Math.round(dailySpend * 10000) / 10000,
+      budgetLimit: dailyBudget
+    };
+  } catch (error) {
+    console.error('❌ Budget check failed:', error.message);
+    // On error, assume budget is available to avoid blocking workflows
+    const dailyBudget = parseFloat(process.env.DAILY_BUDGET_LIMIT) || 5.00;
+    return {
+      withinBudget: true,
+      remaining: dailyBudget,
+      dailySpend: 0,
+      budgetLimit: dailyBudget,
+      error: error.message
+    };
+  }
+}
+
 module.exports = { 
   trackCost, 
   getCostSummary, 
   checkBudgetAlert, 
   getDailySummary,
-  calculateHourlyCostRate 
+  calculateHourlyCostRate,
+  checkDailyBudget 
 };

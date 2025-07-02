@@ -3,10 +3,33 @@
  */
 
 const { ContrastClient } = require('../../clients/contrast-client');
-const { trackCost } = require('../../shared/cost-tracker');
+const { trackCost, checkDailyBudget } = require('../../shared/cost-tracker');
 
 async function testContrastAgent() {
   const startTime = Date.now();
+  
+  // Check daily budget before proceeding
+  const budgetCheck = await checkDailyBudget();
+  if (!budgetCheck.withinBudget) {
+    console.log(`⚠️ Budget limit reached - skipping Agent #29 (Contrast). Daily spend: $${budgetCheck.dailySpend}, Limit: $${budgetCheck.budgetLimit}`);
+    
+    // Track zero-cost heartbeat to show workflow fired
+    await trackCost('contrast-analyzer-29', 0, 'Budget limit reached - skipped execution');
+    
+    return {
+      name: 'agent-29-contrast',
+      status: 'skipped',
+      responseTime: Date.now() - startTime,
+      cost: 0,
+      details: {
+        budget_exceeded: true,
+        daily_spend: budgetCheck.dailySpend,
+        budget_limit: budgetCheck.budgetLimit,
+        remaining: budgetCheck.remaining
+      },
+      agent_id: 'contrast-analyzer-29'
+    };
+  }
   
   try {
     const client = new ContrastClient();

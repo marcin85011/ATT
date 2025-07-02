@@ -272,6 +272,40 @@ npm test                  # Runs smoke tests in mock mode
 - **CI**: Runs automatically on every push/PR
 
 ### Cost Management
+
+#### Daily Budget Protection
+The system includes automatic budget protection to prevent cost overruns:
+
+```bash
+# Set daily spending limit (default: $5.00)
+export DAILY_BUDGET_LIMIT=5.00
+
+# Budget guard automatically checks before each QC operation
+npm run smoke-test:real  # Skips tests if budget exceeded
+```
+
+**Budget Guard Features:**
+- ✅ **Automatic Protection**: QC agents (#28-31) check budget before execution
+- ✅ **Graceful Skipping**: Operations skip with clear logging when budget exceeded  
+- ✅ **Zero-Cost Heartbeats**: Tracks workflow execution even when skipped
+- ✅ **Daily Reset**: Budget resets automatically at midnight UTC
+- ✅ **Real-Time Tracking**: Monitors spending in `cost-tracking.json`
+
+**Environment Variable:**
+```bash
+DAILY_BUDGET_LIMIT=5.00  # Default: $5.00, prevents runaway costs
+```
+
+**Testing Budget Guard:**
+```bash
+# Run budget guard unit tests
+node tests/budget-guard-test.js
+
+# Test with different budget limits
+DAILY_BUDGET_LIMIT=1.00 npm run smoke-test:real
+```
+
+#### Cost Thresholds
 ```bash
 export SMOKE_TEST_COST_THRESHOLD=0.10  # Alert if exceeded
 npm run smoke-test:real                 # Monitor real API costs

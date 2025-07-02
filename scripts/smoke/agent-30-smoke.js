@@ -3,10 +3,33 @@
  */
 
 const { ReadabilityClient } = require('../../clients/readability-client');
-const { trackCost } = require('../../shared/cost-tracker');
+const { trackCost, checkDailyBudget } = require('../../shared/cost-tracker');
 
 async function testReadabilityAgent() {
   const startTime = Date.now();
+  
+  // Check daily budget before proceeding
+  const budgetCheck = await checkDailyBudget();
+  if (!budgetCheck.withinBudget) {
+    console.log(`⚠️ Budget limit reached - skipping Agent #30 (Readability). Daily spend: $${budgetCheck.dailySpend}, Limit: $${budgetCheck.budgetLimit}`);
+    
+    // Track zero-cost heartbeat to show workflow fired
+    await trackCost('readability-scorer-30', 0, 'Budget limit reached - skipped execution');
+    
+    return {
+      name: 'agent-30-readability',
+      status: 'skipped',
+      responseTime: Date.now() - startTime,
+      cost: 0,
+      details: {
+        budget_exceeded: true,
+        daily_spend: budgetCheck.dailySpend,
+        budget_limit: budgetCheck.budgetLimit,
+        remaining: budgetCheck.remaining
+      },
+      agent_id: 'readability-scorer-30'
+    };
+  }
   
   try {
     const client = new ReadabilityClient();
