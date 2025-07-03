@@ -100,6 +100,58 @@ VITE_HMR_PORT=3001                      # HMR port for Docker
 - Live data from cost tracking, error logs, test results
 - Graceful fallback to mock data if API unavailable
 - Real-time file watching updates
+- **NEW**: WebSocket live updates with automatic fallback
+
+## WebSocket Live Updates
+
+The dashboard now supports real-time metrics updates via WebSocket connections with automatic fallback to REST polling.
+
+### Configuration
+
+Set environment variables for WebSocket behavior:
+
+```bash
+# WebSocket Configuration
+VITE_SOCKET_URL=http://localhost:4000  # Default socket server
+VITE_USE_MOCKS=true                    # Force REST polling in development
+
+# API Configuration (fallback)
+VITE_API_BASE_URL=http://localhost:4000 # REST API endpoint  
+VITE_API_TIMEOUT=5000                   # Request timeout
+VITE_POLLING_INTERVAL=30000             # Polling interval when WebSocket fails
+```
+
+### Connection Status
+
+The dashboard header shows connection status:
+
+- **Live**: Real-time WebSocket updates
+- **Polling**: Fallback to REST API (15s intervals)
+- **Connecting**: Initial connection attempt
+
+### Development with WebSocket
+
+```bash
+# Start with live WebSocket updates
+VITE_USE_MOCKS=false npm run dev
+
+# Start with mock data (no WebSocket)
+VITE_USE_MOCKS=true npm run dev
+
+# Start API server for WebSocket testing
+npm run start:api  # In project root
+```
+
+### Testing WebSocket Integration
+
+```bash
+# Test WebSocket hook functionality
+npm test -- useLiveMetrics
+
+# Test WebSocket connection manually
+npm run dev
+# Check browser console for connection logs
+```
 
 ## Development Workflow
 
