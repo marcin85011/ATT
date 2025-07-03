@@ -646,3 +646,69 @@ VITE_HMR_PORT=3001
 ```
 
 For complete Docker documentation including dashboard-specific instructions, see `dashboard/README.md`.
+
+## 🏗 Production
+
+### PM2 Cluster Mode Setup
+
+For production deployment with PM2 process manager:
+
+```bash
+# Quick start - run the production script
+./scripts/start-production.sh
+```
+
+#### Manual Setup
+```bash
+# Install PM2 globally
+npm install -g pm2
+
+# Start in cluster mode with all CPU cores
+pm2 start pm2.config.js
+
+# Save configuration for restart on boot  
+pm2 save && pm2 startup
+```
+
+#### Production Management
+
+**Check Status:**
+```bash
+pm2 list                    # Show all processes
+pm2 show metrics-api        # Detailed info
+pm2 monit                   # Real-time monitoring
+```
+
+**Process Control:**
+```bash
+pm2 restart metrics-api     # Restart application
+pm2 reload metrics-api      # Zero-downtime reload
+pm2 stop metrics-api        # Stop application
+pm2 delete metrics-api      # Remove from PM2
+```
+
+**Log Management:**
+```bash
+pm2 logs metrics-api        # View real-time logs
+pm2 logs metrics-api --lines 100  # Last 100 lines
+pm2 flush metrics-api       # Clear logs
+```
+
+#### Log Locations
+- **Output logs**: `./logs/api-out.log`
+- **Error logs**: `./logs/api-error.log` 
+- **Combined logs**: `./logs/api-combined.log`
+- **Retention**: 7-day automatic rotation via PM2
+- **Format**: JSON with timestamps (YYYY-MM-DD HH:mm:ss)
+
+#### Configuration
+- **Cluster mode**: Utilizes all available CPU cores (`instances: "max"`)
+- **Memory limit**: 250MB per instance (auto-restart on exceed)
+- **Auto-restart**: Enabled with 5 max restarts, 10s minimum uptime
+- **Environment**: `NODE_ENV=production`, `PORT=4000`
+
+#### Performance Benefits
+- **Load balancing**: Requests distributed across CPU cores
+- **Zero-downtime**: Hot reloads without dropping connections
+- **Memory management**: Automatic restart on memory leaks
+- **Fault tolerance**: Process monitoring and auto-recovery

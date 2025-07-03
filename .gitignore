@@ -9,3 +9,7 @@ cost-tracking.jsonl
 error-log.json
 error-log.jsonl
 cost-tracking-test.json
+
+# PM2 logs
+logs/*.log
+logs/*.json
