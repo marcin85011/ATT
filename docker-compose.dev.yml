@@ -1,0 +1,93 @@
+# ATT System Docker Compose - Development Override
+version: '3.8'
+
+services:
+  metrics-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: base  # Use base stage for development
+    image: att-system/metrics-api:dev
+    container_name: att-metrics-api-dev
+    environment:
+      - NODE_ENV=development
+      - DEBUG=att:*
+      - CHOKIDAR_USEPOLLING=true
+    volumes:
+      # Mount source code for live reloading
+      - ./api-server.js:/app/api-server.js
+      - ./metrics:/app/metrics
+      - ./shared:/app/shared
+      # Mount data files read-write for development
+      - ./cost-tracking.json:/app/data/cost-tracking.json
+      - ./cost-tracking.jsonl:/app/data/cost-tracking.jsonl
+      - ./error-log.json:/app/data/error-log.json
+      - ./error-log.jsonl:/app/data/error-log.jsonl
+      - ./SMOKE_TEST_RESULTS.md:/app/data/SMOKE_TEST_RESULTS.md
+      - ./tests/fixtures:/app/data/fixtures
+      # Mount node_modules for faster development
+      - api-node-modules:/app/node_modules
+    command: ["node", "--inspect=0.0.0.0:9229", "api-server.js"]
+    ports:
+      - "4000:4000"
+      - "9229:9229"  # Node.js debugger port
+    healthcheck:
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  dashboard:
+    build:
+      context: ./dashboard
+      dockerfile: Dockerfile
+      target: builder  # Use builder stage for development
+    image: att-system/dashboard:dev
+    container_name: att-dashboard-dev
+    environment:
+      - NODE_ENV=development
+      - VITE_USE_MOCKS=false
+      - VITE_API_BASE_URL=http://localhost:4000
+      - VITE_DEBUG_MODE=true
+      - VITE_HMR_PORT=3001
+    volumes:
+      # Mount source code for live reloading
+      - ./dashboard/src:/app/src
+      - ./dashboard/public:/app/public
+      - ./dashboard/index.html:/app/index.html
+      - ./dashboard/vite.config.ts:/app/vite.config.ts
+      - ./dashboard/package.json:/app/package.json
+      - ./dashboard/.env:/app/.env
+      # Mount node_modules for faster development
+      - dashboard-node-modules:/app/node_modules
+    command: ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "3000"]
+    ports:
+      - "3000:3000"
+      - "3001:3001"  # Vite HMR port
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # Development tools
+  api-docs:
+    image: swaggerapi/swagger-ui:latest
+    container_name: att-api-docs
+    ports:
+      - "8080:8080"
+    environment:
+      - SWAGGER_JSON_URL=http://localhost:4000/api/docs
+    depends_on:
+      - metrics-api
+    networks:
+      - att-network
+    profiles:
+      - tools
+
+volumes:
+  api-node-modules:
+    name: att-api-node-modules-dev
+  dashboard-node-modules:
+    name: att-dashboard-node-modules-dev

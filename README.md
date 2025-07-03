@@ -365,3 +365,350 @@ GRAMMARLY_API_KEY=your_grammarly_business_key
 PLACEIT_API_KEY=your_placeit_api_key  
 NOTION_QC_DATABASE_ID=your_qc_database_id
 ```
+
+## 🐳 Docker Deployment
+
+### Quick Start
+```bash
+# Production deployment
+docker-compose up -d
+
+# Development mode with live reloading
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+
+# View logs
+docker-compose logs -f
+```
+
+### Services Overview
+| Service | Port | Purpose | Health Check |
+|---------|------|---------|--------------|
+| `metrics-api` | 4000 | API server for dashboard metrics | `/api/status` |
+| `dashboard` | 3000 | React dashboard with nginx | `/health` |
+
+### Architecture
+```
+┌─────────────────┐    ┌──────────────────┐
+│   Dashboard     │    │   Metrics API    │
+│   (nginx:alpine)│◄──►│   (node:18-alpine)│
+│   Port: 3000    │    │   Port: 4000     │
+└─────────────────┘    └──────────────────┘
+         │                       │
+         └───────────────────────┘
+              docker network
+                   │
+           ┌───────▼────────┐
+           │ Mounted Files  │
+           │ - cost-tracking│
+           │ - error-logs   │
+           │ - smoke-tests  │
+           └────────────────┘
+```
+
+### Production Deployment
+
+#### Prerequisites
+- Docker Engine 20.10+
+- Docker Compose 2.0+
+- Data files: `cost-tracking.json`, `error-log.jsonl`, `SMOKE_TEST_RESULTS.md`
+
+#### Build and Deploy
+```bash
+# Clone and navigate to project
+git clone <repository-url> att-system
+cd att-system
+
+# Create required data files if they don't exist
+touch cost-tracking.json cost-tracking.jsonl error-log.json error-log.jsonl
+echo "# Smoke Test Results" > SMOKE_TEST_RESULTS.md
+
+# Build and start services
+docker-compose up -d
+
+# Verify deployment
+curl http://localhost:4000/api/status
+curl http://localhost:3000/health
+```
+
+#### Service Configuration
+
+**Metrics API** (`metrics-api` service):
+- **Base Image**: `node:18-alpine` (multi-stage build)
+- **User**: Non-root user `attapi` (uid: 1001)
+- **Health Check**: Calls `/api/status` every 30s
+- **Data Mounts**: Read-only access to cost/error/test files
+- **Security**: dumb-init for signal handling
+
+**Dashboard** (`dashboard` service):
+- **Build Stage**: Node.js build with Vite
+- **Runtime**: `nginx:alpine` serving static files
+- **User**: Non-root user `attdash` (uid: 1001)
+- **API Proxy**: Nginx proxies `/api/*` to metrics-api:4000
+- **SPA Routing**: Fallback to `index.html` for React Router
+
+### Development Mode
+
+#### Live Reloading Setup
+```bash
+# Start development environment
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+
+# View development logs
+docker-compose logs -f metrics-api dashboard
+
+# Debugging ports
+# API: http://localhost:4000 (+ debugger on 9229)
+# Dashboard: http://localhost:3000 (+ HMR on 3001)
+```
+
+#### Development Features
+- **Live Code Reloading**: Source files mounted for instant updates
+- **Debug Support**: Node.js debugger on port 9229
+- **HMR**: Vite Hot Module Replacement on port 3001
+- **Volume Caching**: Node modules cached in Docker volumes
+- **Writeable Mounts**: Data files can be modified for testing
+
+#### File Watching
+Development mode includes enhanced file watching:
+```bash
+# API changes auto-restart server
+echo "console.log('updated');" >> api-server.js
+
+# Dashboard changes trigger HMR
+echo "/* updated */" >> dashboard/src/App.tsx
+```
+
+### Data File Management
+
+#### Required Files
+The system expects these files to be present and readable:
+```bash
+# Cost tracking
+./cost-tracking.json       # Current cost data
+./cost-tracking.jsonl      # Historical cost logs
+
+# Error monitoring  
+./error-log.json          # Current error state
+./error-log.jsonl         # Historical error logs
+
+# Test results
+./SMOKE_TEST_RESULTS.md   # Latest test outcomes
+./tests/fixtures/         # Test data directory
+```
+
+#### File Permissions
+```bash
+# Ensure Docker can read data files
+chmod 644 cost-tracking.json cost-tracking.jsonl
+chmod 644 error-log.json error-log.jsonl  
+chmod 644 SMOKE_TEST_RESULTS.md
+chmod -R 755 tests/fixtures/
+```
+
+### Monitoring and Maintenance
+
+#### Health Checks
+```bash
+# Check service health
+docker-compose ps
+docker health inspect att-metrics-api
+docker health inspect att-dashboard
+
+# Manual health check
+curl -f http://localhost:4000/api/status || echo "API unhealthy"
+curl -f http://localhost:3000/health || echo "Dashboard unhealthy"
+```
+
+#### Logs and Debugging
+```bash
+# View real-time logs
+docker-compose logs -f --tail=50
+
+# Check specific service
+docker-compose logs metrics-api
+docker-compose logs dashboard
+
+# Debug container issues
+docker-compose exec metrics-api sh
+docker-compose exec dashboard sh
+```
+
+#### Performance Monitoring
+```bash
+# Container resource usage
+docker stats att-metrics-api att-dashboard
+
+# Network inspection
+docker network inspect att-system-network
+
+# Volume usage
+docker volume ls | grep att-
+```
+
+### Security Considerations
+
+#### Container Security
+- ✅ **Non-root users**: Both containers run as unprivileged users
+- ✅ **Read-only mounts**: Data files mounted read-only in production
+- ✅ **Security headers**: Nginx configured with security headers
+- ✅ **Process management**: dumb-init for proper signal handling
+- ✅ **Minimal attack surface**: Alpine images with minimal packages
+
+#### Network Security
+- ✅ **Internal network**: Services communicate via Docker network
+- ✅ **Rate limiting**: Nginx rate limiting for API endpoints
+- ✅ **CORS protection**: API configured for dashboard origin only
+
+### Troubleshooting
+
+#### Common Issues
+
+**Dashboard shows "API temporarily unavailable"**:
+```bash
+# Check API service
+docker-compose logs metrics-api
+curl http://localhost:4000/api/status
+
+# Restart API service
+docker-compose restart metrics-api
+```
+
+**File mount permission errors**:
+```bash
+# Fix file ownership (Linux/macOS)
+sudo chown $USER:$USER cost-tracking.json error-log.jsonl
+chmod 644 cost-tracking.json error-log.jsonl
+
+# Windows (run as administrator)
+icacls cost-tracking.json /grant Users:R
+```
+
+**Build failures**:
+```bash
+# Clear Docker build cache
+docker system prune -f
+docker-compose build --no-cache
+
+# Check .dockerignore files
+cat .dockerignore
+cat dashboard/.dockerignore
+```
+
+**Memory/resource issues**:
+```bash
+# Increase Docker memory limit (Docker Desktop)
+# Settings > Resources > Advanced > Memory: 4GB+
+
+# Monitor resource usage
+docker stats --no-stream
+```
+
+#### Debug Commands
+```bash
+# Rebuild specific service
+docker-compose build metrics-api
+docker-compose up -d metrics-api
+
+# Access container shell
+docker-compose exec metrics-api sh
+docker-compose exec dashboard sh
+
+# View container filesystem
+docker-compose exec metrics-api ls -la /app
+docker-compose exec dashboard ls -la /usr/share/nginx/html
+
+# Test API from container
+docker-compose exec metrics-api wget -qO- http://localhost:4000/api/status
+```
+
+### Environment Variables
+
+#### Production Environment
+```bash
+# API Configuration
+NODE_ENV=production
+PORT=4000
+
+# Dashboard Configuration
+NODE_ENV=production
+VITE_USE_MOCKS=false
+VITE_API_BASE_URL=http://localhost:4000
+```
+
+#### Development Environment
+```bash
+# Enable development features
+NODE_ENV=development
+DEBUG=att:*
+VITE_USE_MOCKS=false
+VITE_DEBUG_MODE=true
+VITE_HMR_PORT=3001
+```
+
+For complete Docker documentation including dashboard-specific instructions, see `dashboard/README.md`.
+
+## 🏗 Production
+
+### PM2 Cluster Mode Setup
+
+For production deployment with PM2 process manager:
+
+```bash
+# Quick start - run the production script
+./scripts/start-production.sh
+```
+
+#### Manual Setup
+```bash
+# Install PM2 globally
+npm install -g pm2
+
+# Start in cluster mode with all CPU cores
+pm2 start pm2.config.js
+
+# Save configuration for restart on boot  
+pm2 save && pm2 startup
+```
+
+#### Production Management
+
+**Check Status:**
+```bash
+pm2 list                    # Show all processes
+pm2 show metrics-api        # Detailed info
+pm2 monit                   # Real-time monitoring
+```
+
+**Process Control:**
+```bash
+pm2 restart metrics-api     # Restart application
+pm2 reload metrics-api      # Zero-downtime reload
+pm2 stop metrics-api        # Stop application
+pm2 delete metrics-api      # Remove from PM2
+```
+
+**Log Management:**
+```bash
+pm2 logs metrics-api        # View real-time logs
+pm2 logs metrics-api --lines 100  # Last 100 lines
+pm2 flush metrics-api       # Clear logs
+```
+
+#### Log Locations
+- **Output logs**: `./logs/api-out.log`
+- **Error logs**: `./logs/api-error.log` 
+- **Combined logs**: `./logs/api-combined.log`
+- **Retention**: 7-day automatic rotation via PM2
+- **Format**: JSON with timestamps (YYYY-MM-DD HH:mm:ss)
+
+#### Configuration
+- **Cluster mode**: Utilizes all available CPU cores (`instances: "max"`)
+- **Memory limit**: 250MB per instance (auto-restart on exceed)
+- **Auto-restart**: Enabled with 5 max restarts, 10s minimum uptime
+- **Environment**: `NODE_ENV=production`, `PORT=4000`
+
+#### Performance Benefits
+- **Load balancing**: Requests distributed across CPU cores
+- **Zero-downtime**: Hot reloads without dropping connections
+- **Memory management**: Automatic restart on memory leaks
+- **Fault tolerance**: Process monitoring and auto-recovery
