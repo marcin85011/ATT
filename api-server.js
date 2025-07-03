@@ -17,9 +17,17 @@ const testProcessor = require('./metrics/test-processor');
 const alertProcessor = require('./metrics/alert-processor');
 const fileWatcher = require('./metrics/file-watcher');
 
+// Import cost alert system
+const { CostAlertProcessor } = require('./metrics/cost-alert-processor');
+const { SlackNotifier } = require('./shared/slack-notifier');
+
 const app = express();
 const PORT = 4000;
 const startTime = Date.now();
+
+// Initialize cost alert system
+const costAlertProcessor = new CostAlertProcessor();
+const slackNotifier = new SlackNotifier();
 
 // Create HTTP server and Socket.IO instance
 const httpServer = createServer(app);
@@ -68,6 +76,7 @@ let metricsCache = {
   health: null,
   tests: null,
   alerts: null,
+  costAlerts: [],
   lastUpdated: null
 };
 
@@ -84,6 +93,9 @@ function invalidateCache(changedFile) {
     metricsCache.budget = null;
     metricsCache.alerts = null; // Budget alerts depend on budget data
     console.log('💾 Budget cache invalidated');
+    
+    // Cost alerts depend on budget data - trigger cost alert check
+    processCostAlerts();
   }
   if (changedFile.includes('error-log')) {
     metricsCache.health = null;
@@ -98,6 +110,51 @@ function invalidateCache(changedFile) {
     metricsCache.tests = null;
     metricsCache.alerts = null; // Test failure alerts depend on test data
     console.log('💾 Test cache invalidated');
+  }
+}
+
+// Cost alert processing function
+async function processCostAlerts() {
+  try {
+    console.log('🚨 Checking for cost alerts...');
+    
+    // Get fresh budget data for alert processing
+    const budgetData = await budgetProcessor.getBudgetMetrics();
+    const costAlerts = costAlertProcessor.checkCostOverruns(budgetData);
+    
+    if (costAlerts.length > 0) {
+      console.log(`🚨 ${costAlerts.length} cost alert(s) detected`);
+      
+      // Update cache
+      metricsCache.costAlerts = costAlerts;
+      
+      // Emit real-time cost alerts to connected clients
+      io.emit('cost-alerts:update', {
+        alerts: costAlerts,
+        timestamp: new Date().toISOString(),
+        alertStats: costAlertProcessor.getAlertStats()
+      });
+      console.log('📡 Cost alerts emitted to connected clients');
+      
+      // Send individual alerts to Slack
+      for (const alert of costAlerts) {
+        if (alert.severity === 'critical' || alert.severity === 'high') {
+          await slackNotifier.sendAlert(alert);
+        }
+      }
+      
+      // Send system alert if multiple critical alerts
+      const criticalAlerts = costAlerts.filter(a => a.severity === 'critical');
+      if (criticalAlerts.length >= 2) {
+        await slackNotifier.sendMultipleAlertsNotification(criticalAlerts);
+      }
+      
+    } else {
+      console.log('✅ No cost alerts detected');
+    }
+    
+  } catch (error) {
+    console.error('❌ Error processing cost alerts:', error);
   }
 }
 
@@ -141,12 +198,18 @@ async function loadMetrics() {
     metricsCache.lastUpdated = new Date().toISOString();
     console.log('✅ Metrics cache updated successfully');
     
+    // Process cost alerts after budget data is loaded
+    if (metricsCache.budget) {
+      await processCostAlerts();
+    }
+    
     // Emit real-time metrics update to connected clients
     io.emit('metrics:update', {
       budget: metricsCache.budget,
       health: metricsCache.health,
       tests: metricsCache.tests,
       alerts: metricsCache.alerts,
+      costAlerts: metricsCache.costAlerts,
       timestamp: metricsCache.lastUpdated
     });
     console.log('📡 Metrics update emitted to connected clients');
@@ -174,7 +237,8 @@ app.get('/api/status', (req, res) => {
         budget: metricsCache.budget?.length || 0,
         health: metricsCache.health?.length || 0,
         tests: metricsCache.tests?.length || 0,
-        alerts: metricsCache.alerts?.length || 0
+        alerts: metricsCache.alerts?.length || 0,
+        costAlerts: metricsCache.costAlerts?.length || 0
       }
     },
     fileWatcher: {
@@ -276,6 +340,121 @@ app.get('/api/alerts', async (req, res) => {
   }
 });
 
+// Cost alerts endpoint
+app.get('/api/cost-alerts', async (req, res) => {
+  try {
+    // Always return fresh cost alerts to ensure real-time data
+    if (!metricsCache.budget) {
+      metricsCache.budget = await budgetProcessor.getBudgetMetrics();
+    }
+    
+    const costAlerts = costAlertProcessor.checkCostOverruns(metricsCache.budget);
+    metricsCache.costAlerts = costAlerts;
+    
+    res.json({
+      alerts: costAlerts,
+      alertStats: costAlertProcessor.getAlertStats(),
+      thresholds: costAlertProcessor.getThresholds(),
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('❌ Error fetching cost alerts:', error);
+    res.status(500).json({ 
+      error: 'Failed to fetch cost alerts',
+      message: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
+// Cost alert configuration endpoints
+app.get('/api/cost-alerts/config', (req, res) => {
+  try {
+    res.json({
+      thresholds: costAlertProcessor.getThresholds(),
+      alertStats: costAlertProcessor.getAlertStats(),
+      slackConfig: slackNotifier.getConfig(),
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('❌ Error fetching cost alert config:', error);
+    res.status(500).json({ 
+      error: 'Failed to fetch cost alert configuration',
+      message: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
+app.post('/api/cost-alerts/config', (req, res) => {
+  try {
+    const { thresholds, slackConfig } = req.body;
+    
+    if (thresholds) {
+      costAlertProcessor.updateThresholds(thresholds);
+    }
+    
+    if (slackConfig) {
+      slackNotifier.updateConfig(slackConfig);
+    }
+    
+    res.json({
+      success: true,
+      message: 'Cost alert configuration updated',
+      thresholds: costAlertProcessor.getThresholds(),
+      slackConfig: slackNotifier.getConfig(),
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('❌ Error updating cost alert config:', error);
+    res.status(500).json({ 
+      error: 'Failed to update cost alert configuration',
+      message: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
+app.post('/api/cost-alerts/test', async (req, res) => {
+  try {
+    const result = await slackNotifier.sendTestNotification();
+    
+    res.json({
+      success: result.success,
+      message: result.success ? 'Test notification sent successfully' : 'Test notification failed',
+      result,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('❌ Error sending test notification:', error);
+    res.status(500).json({ 
+      error: 'Failed to send test notification',
+      message: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
+app.post('/api/cost-alerts/clear-cooldowns', (req, res) => {
+  try {
+    costAlertProcessor.clearCooldowns();
+    
+    res.json({
+      success: true,
+      message: 'Cost alert cooldowns cleared successfully',
+      alertStats: costAlertProcessor.getAlertStats(),
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('❌ Error clearing cost alert cooldowns:', error);
+    res.status(500).json({ 
+      error: 'Failed to clear cost alert cooldowns',
+      message: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
 // Force refresh endpoint (useful for testing)
 app.post('/api/refresh', async (req, res) => {
   try {
@@ -286,6 +465,7 @@ app.post('/api/refresh', async (req, res) => {
     metricsCache.health = null;
     metricsCache.tests = null;
     metricsCache.alerts = null;
+    metricsCache.costAlerts = [];
     
     // Reload all metrics
     await loadMetrics();
@@ -316,6 +496,11 @@ app.use('*', (req, res) => {
       'GET /api/budget',
       'GET /api/tests',
       'GET /api/alerts',
+      'GET /api/cost-alerts',
+      'GET /api/cost-alerts/config',
+      'POST /api/cost-alerts/config',
+      'POST /api/cost-alerts/test',
+      'POST /api/cost-alerts/clear-cooldowns',
       'POST /api/refresh'
     ],
     timestamp: new Date().toISOString()
@@ -336,6 +521,11 @@ httpServer.listen(PORT, async () => {
   console.log(`   GET  http://localhost:${PORT}/api/budget`);
   console.log(`   GET  http://localhost:${PORT}/api/tests`);
   console.log(`   GET  http://localhost:${PORT}/api/alerts`);
+  console.log(`   GET  http://localhost:${PORT}/api/cost-alerts`);
+  console.log(`   GET  http://localhost:${PORT}/api/cost-alerts/config`);
+  console.log(`   POST http://localhost:${PORT}/api/cost-alerts/config`);
+  console.log(`   POST http://localhost:${PORT}/api/cost-alerts/test`);
+  console.log(`   POST http://localhost:${PORT}/api/cost-alerts/clear-cooldowns`);
   console.log(`   POST http://localhost:${PORT}/api/refresh\n`);
   
   // Initial cache load

@@ -59,8 +59,22 @@
 
 .app-main {
   padding: 2rem;
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
+}
+
+.dashboard-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.metrics-overview {
+  width: 100%;
+}
+
+.cost-alerts-section {
+  width: 100%;
 }
 
 .metrics-grid {
@@ -103,6 +117,35 @@
   font-style: italic;
 }
 
+/* Cost Alerts Styles */
+.cost-alerts-summary .alert-indicators {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.severity-indicator {
+  font-size: 1.25rem;
+}
+
+.severity-indicator.critical {
+  animation: pulse-red 1.5s infinite;
+}
+
+.severity-indicator.high {
+  animation: pulse-orange 2s infinite;
+}
+
+@keyframes pulse-red {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.1); }
+}
+
+@keyframes pulse-orange {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
 .loading {
   text-align: center;
   padding: 4rem 2rem;
@@ -142,5 +185,15 @@
   .metrics-grid {
     grid-template-columns: 1fr;
     gap: 1rem;
+  }
+  
+  .dashboard-layout {
+    gap: 1rem;
+  }
+}
+
+@media (min-width: 1200px) {
+  .metrics-grid {
+    grid-template-columns: repeat(5, 1fr);
   }
 }

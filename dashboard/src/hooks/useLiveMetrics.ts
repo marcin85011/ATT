@@ -6,11 +6,19 @@ interface MetricsData {
   health: any;
   tests: any;
   alerts: any;
+  costAlerts: any;
   timestamp: string;
+}
+
+interface CostAlertsData {
+  alerts: any[];
+  timestamp: string;
+  alertStats: any;
 }
 
 export const useLiveMetrics = () => {
   const [metrics, setMetrics] = useState<MetricsData | null>(null);
+  const [costAlerts, setCostAlerts] = useState<CostAlertsData | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [socket, setSocket] = useState<Socket | null>(null);
   const [fallbackToPolling, setFallbackToPolling] = useState(false);
@@ -34,6 +42,20 @@ export const useLiveMetrics = () => {
     newSocket.on('metrics:update', (data: MetricsData) => {
       console.log('📊 Received metrics update:', data.timestamp);
       setMetrics(data);
+      
+      // Update cost alerts if included in metrics
+      if (data.costAlerts) {
+        setCostAlerts({
+          alerts: data.costAlerts,
+          timestamp: data.timestamp,
+          alertStats: {}
+        });
+      }
+    });
+
+    newSocket.on('cost-alerts:update', (data: CostAlertsData) => {
+      console.log('🚨 Received cost alerts update:', data.timestamp);
+      setCostAlerts(data);
     });
 
     newSocket.on('disconnect', () => {
@@ -70,11 +92,12 @@ export const useLiveMetrics = () => {
       try {
         const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000';
         
-        const [budget, health, tests, alerts] = await Promise.all([
+        const [budget, health, tests, alerts, costAlertsResponse] = await Promise.all([
           fetch(`${apiBaseUrl}/api/budget`).then(r => r.json()),
           fetch(`${apiBaseUrl}/api/health`).then(r => r.json()),
           fetch(`${apiBaseUrl}/api/tests`).then(r => r.json()),
-          fetch(`${apiBaseUrl}/api/alerts`).then(r => r.json())
+          fetch(`${apiBaseUrl}/api/alerts`).then(r => r.json()),
+          fetch(`${apiBaseUrl}/api/cost-alerts`).then(r => r.json())
         ]);
 
         setMetrics({
@@ -82,7 +105,14 @@ export const useLiveMetrics = () => {
           health,
           tests,
           alerts,
+          costAlerts: costAlertsResponse.alerts,
           timestamp: new Date().toISOString()
+        });
+
+        setCostAlerts({
+          alerts: costAlertsResponse.alerts,
+          timestamp: costAlertsResponse.timestamp,
+          alertStats: costAlertsResponse.alertStats
         });
       } catch (error) {
         console.error('❌ REST polling failed:', error);
@@ -100,6 +130,7 @@ export const useLiveMetrics = () => {
 
   return {
     metrics,
+    costAlerts,
     isConnected,
     fallbackToPolling,
     socket

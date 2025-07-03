@@ -802,3 +802,257 @@ npm run test:integration -- websocket-integration.test.js
 npm run start:api  # Start metrics API with WebSocket
 npm run dev       # Start dashboard (in dashboard/ directory)
 ```
+
+## 🚨 Real-time Cost Alerts
+
+### Overview
+
+The system now includes comprehensive real-time cost monitoring with threshold-based alerts and Slack notifications. This feature extends the existing cost tracking with proactive monitoring and immediate notifications when API costs exceed configured limits.
+
+### Architecture
+
+```
+┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
+│   Dashboard     │◄──►│   Metrics API    │◄──►│ Cost Alert      │
+│   Cost Alerts   │    │   Socket.IO      │    │ Processor       │
+│   UI Component  │    │   Port: 4000     │    └─────────────────┘
+└─────────────────┘    └──────────────────┘              │
+         │                       │                       ▼
+    ┌────▼────┐              ┌───▼───┐           ┌─────────────────┐
+    │ Real-   │              │ File  │           │ Slack Notifier  │
+    │ time    │              │ Watch │           │ Webhook         │
+    │ Alerts  │              │ er    │           │ Integration     │
+    └─────────┘              └───────┘           └─────────────────┘
+```
+
+### Features
+
+- **Real-time Monitoring**: Continuous cost tracking with immediate alert generation
+- **Configurable Thresholds**: Per-service daily and monthly cost limits
+- **Severity Levels**: Critical, High, Medium, Low alerts based on overrun percentage
+- **Cooldown Management**: Prevents alert spam with configurable cooldown periods
+- **Slack Integration**: Formatted notifications sent to Slack channels
+- **WebSocket Push**: Instant dashboard updates via WebSocket events
+- **Dashboard UI**: Interactive configuration and alert management interface
+
+### Configuration
+
+#### Environment Variables
+
+```bash
+# Cost Alert Thresholds (JSON format)
+COST_ALERT_THRESHOLDS='{"openai": 5.00, "replicate": 10.00, "perplexity": 2.00}'
+
+# Alert Cooldown Period (milliseconds)
+COST_ALERT_COOLDOWN=3600000  # 1 hour default
+
+# Slack Integration
+SLACK_WEBHOOK_URL=https://hooks.slack.com/services/YOUR/WEBHOOK/URL
+SLACK_CHANNEL=#att-system-alerts
+SLACK_USERNAME=ATT Cost Monitor
+SLACK_ICON=:warning:
+
+# Dashboard URL for alert links
+DASHBOARD_URL=http://localhost:3000
+```
+
+#### Default Thresholds
+
+```json
+{
+  "openai": 5.00,
+  "replicate": 10.00,
+  "perplexity": 2.00,
+  "firecrawl": 3.00,
+  "scrapehero": 5.00,
+  "textgears": 1.00,
+  "media_modifier": 5.00
+}
+```
+
+### API Endpoints
+
+#### Get Cost Alerts
+```bash
+GET /api/cost-alerts
+```
+Returns current cost alerts, thresholds, and statistics.
+
+#### Configuration Management
+```bash
+# Get current configuration
+GET /api/cost-alerts/config
+
+# Update configuration
+POST /api/cost-alerts/config
+Content-Type: application/json
+{
+  "thresholds": {"openai": 7.50},
+  "slackConfig": {"channel": "#new-alerts"}
+}
+```
+
+#### Testing and Management
+```bash
+# Send test Slack notification
+POST /api/cost-alerts/test
+
+# Clear alert cooldowns
+POST /api/cost-alerts/clear-cooldowns
+```
+
+### WebSocket Events
+
+The system emits dedicated cost alert events:
+
+```javascript
+// Cost alert events
+socket.on('cost-alerts:update', (data) => {
+  console.log('🚨 Cost alerts:', data.alerts);
+  console.log('📊 Alert stats:', data.alertStats);
+});
+
+// Regular metrics updates now include cost alerts
+socket.on('metrics:update', (data) => {
+  console.log('💰 Cost alerts:', data.costAlerts);
+});
+```
+
+### Severity Levels
+
+Cost alerts are classified by severity based on threshold overrun:
+
+| Severity | Threshold Overrun | Color | Slack Priority | Description |
+|----------|------------------|-------|----------------|-------------|
+| **Critical** | ≥200% | 🔴 Red | High | Immediate action required |
+| **High** | ≥150% | 🟠 Orange | High | Urgent attention needed |
+| **Medium** | ≥120% | 🟡 Yellow | Normal | Monitor closely |
+| **Low** | >100% | 🟢 Green | Low | Just over threshold |
+
+### Dashboard Interface
+
+#### Cost Alerts Component Features
+
+- **Real-time Display**: Live cost alert updates with severity indicators
+- **Configuration Panel**: Interactive threshold and Slack configuration
+- **Test Functions**: Send test notifications and clear cooldowns
+- **Alert History**: Visual timeline of cost overruns
+- **Service Breakdown**: Per-service cost monitoring and alerts
+
+#### Usage
+
+1. **Monitor**: View active cost alerts in the dashboard
+2. **Configure**: Set custom thresholds for each API service
+3. **Test**: Verify Slack integration with test notifications
+4. **Manage**: Clear cooldowns or adjust alert settings
+
+### Slack Integration
+
+#### Notification Format
+
+Cost alerts are sent to Slack with rich formatting:
+
+```
+🚨 Cost Alert: OpenAI Chat
+━━━━━━━━━━━━━━━━━━━━━━━
+
+Severity: CRITICAL (critical)
+Period: Daily
+Current Cost: $10.50
+Threshold: $5.00
+Overrun: $5.50 (210%)
+Service: OpenAI Chat
+
+[View Dashboard →]
+```
+
+#### Multiple Alert Notifications
+
+When multiple critical alerts occur simultaneously:
+
+```
+🚨 Multiple Cost Overruns Detected
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Critical Alerts: 3
+High Priority: 2
+Total Overrun: $15.75
+Services Affected: OpenAI Chat, Replicate, Firecrawl
+
+[View Dashboard →]
+```
+
+### Testing
+
+#### Unit Tests
+```bash
+# Run cost alert unit tests
+npm test -- cost-alerts.test.js
+
+# Test specific components
+npm test -- cost-alert-processor
+npm test -- slack-notifier
+```
+
+#### Integration Tests
+```bash
+# Test WebSocket integration
+npm run test:integration -- cost-alerts-integration.test.js
+
+# Test Slack integration (requires webhook URL)
+SLACK_WEBHOOK_URL=your_url npm test -- slack-integration.test.js
+```
+
+#### Manual Testing
+```bash
+# Trigger test cost overrun
+curl -X POST http://localhost:4000/api/cost-alerts/test
+
+# Simulate high costs
+echo '{"openai": 0.01}' > cost-test.json
+# (Costs exceeding thresholds will trigger alerts)
+```
+
+### Monitoring and Troubleshooting
+
+#### Alert Statistics
+```bash
+# Check alert system status
+curl http://localhost:4000/api/cost-alerts/config
+
+# View alert statistics
+curl http://localhost:4000/api/cost-alerts | jq '.alertStats'
+```
+
+#### Common Issues
+
+**Alerts not triggering:**
+- Verify cost data is being written to `cost-tracking.json`
+- Check threshold configuration
+- Ensure file watcher is active
+
+**Slack notifications failing:**
+- Verify `SLACK_WEBHOOK_URL` is correctly configured
+- Test webhook URL manually
+- Check network connectivity
+
+**WebSocket not receiving alerts:**
+- Verify dashboard WebSocket connection
+- Check browser console for errors
+- Try refreshing the dashboard
+
+### Performance
+
+The cost alert system is designed for minimal performance impact:
+
+- **File Watching**: Uses efficient file system watchers
+- **Cooldown System**: Prevents excessive processing and notifications
+- **WebSocket Efficiency**: Only emits updates when alerts change
+- **Memory Usage**: Maintains small in-memory alert history cache
+
+### Security
+
+- **No Sensitive Data**: Alert messages exclude detailed cost breakdowns
+- **Webhook Validation**: Slack webhook URLs validated before use
+- **Rate Limiting**: Cooldown periods prevent notification spam
+- **Access Control**: Dashboard configuration requires direct access
