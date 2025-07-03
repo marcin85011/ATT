@@ -712,3 +712,93 @@ pm2 flush metrics-api       # Clear logs
 - **Zero-downtime**: Hot reloads without dropping connections
 - **Memory management**: Automatic restart on memory leaks
 - **Fault tolerance**: Process monitoring and auto-recovery
+
+## 🔄 Real-time Updates
+
+### WebSocket Architecture
+
+The dashboard now supports real-time metrics updates via WebSocket connections using Socket.IO:
+
+- **Server**: Socket.IO server integrated with Express on port 4000
+- **Client**: Automatic connection with fallback to REST polling
+- **Fallback**: 15-second timeout triggers REST polling backup
+
+```
+┌─────────────────┐    ┌──────────────────┐
+│   Dashboard     │◄──►│   Metrics API    │
+│   React/WS      │    │   Socket.IO      │
+│   Port: 3000    │    │   Port: 4000     │
+└─────────────────┘    └──────────────────┘
+         │                       │
+    ┌────▼────┐              ┌───▼───┐
+    │ Real-   │              │ File  │
+    │ time    │              │ Watch │
+    └─────────┘              └───────┘
+```
+
+### Environment Variables
+
+Configure WebSocket behavior with environment variables:
+
+```bash
+# WebSocket Configuration
+VITE_SOCKET_URL=http://localhost:4000  # WebSocket server URL (default)
+VITE_USE_MOCKS=false                   # Disable for live WebSocket updates
+
+# API Configuration (fallback)
+VITE_API_BASE_URL=http://localhost:4000 # REST API endpoint
+VITE_API_TIMEOUT=5000                   # Request timeout (ms)
+VITE_POLLING_INTERVAL=30000             # Polling fallback interval (ms)
+```
+
+### Connection Status
+
+The dashboard header displays real-time connection status:
+
+- **🟢 Live**: WebSocket connected, receiving real-time updates
+- **🟠 Polling**: WebSocket disconnected, using REST API fallback  
+- **🔴 Connecting**: Initial connection attempt in progress
+
+### WebSocket Events
+
+The system emits `metrics:update` events whenever file changes trigger cache updates:
+
+```javascript
+// Server-side emission
+io.emit('metrics:update', {
+  budget: metricsCache.budget,
+  health: metricsCache.health, 
+  tests: metricsCache.tests,
+  alerts: metricsCache.alerts,
+  timestamp: metricsCache.lastUpdated
+});
+
+// Client-side consumption
+socket.on('metrics:update', (data) => {
+  console.log('📊 Received metrics update:', data.timestamp);
+  setMetrics(data);
+});
+```
+
+### Automatic Fallback Logic
+
+The dashboard automatically handles connection failures:
+
+1. **WebSocket Preferred**: Attempts WebSocket connection first
+2. **15s Timeout**: Falls back to REST polling if disconnected >15s
+3. **Mock Mode**: Uses `VITE_USE_MOCKS=true` to disable WebSocket entirely
+4. **Error Recovery**: Attempts reconnection on WebSocket errors
+
+### Testing WebSocket Integration
+
+```bash
+# Unit tests for WebSocket functionality
+npm test -- websocket.test.js
+
+# Integration tests with live server
+npm run test:integration -- websocket-integration.test.js
+
+# Manual testing
+npm run start:api  # Start metrics API with WebSocket
+npm run dev       # Start dashboard (in dashboard/ directory)
+```

@@ -7,6 +7,8 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const { createServer } = require('http');
+const { Server } = require('socket.io');
 
 // Import metrics processors
 const budgetProcessor = require('./metrics/budget-processor');
@@ -19,6 +21,15 @@ const app = express();
 const PORT = 4000;
 const startTime = Date.now();
 
+// Create HTTP server and Socket.IO instance
+const httpServer = createServer(app);
+const io = new Server(httpServer, {
+  cors: {
+    origin: "http://localhost:3000",
+    methods: ["GET", "POST"]
+  }
+});
+
 // Middleware configuration
 app.use(cors({
   origin: 'http://localhost:3000',
@@ -30,6 +41,15 @@ app.use(express.json());
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} ${req.method} ${req.path}`);
   next();
+});
+
+// Socket.IO connection handling
+io.on('connection', (socket) => {
+  console.log('📡 Dashboard connected:', socket.id);
+  
+  socket.on('disconnect', () => {
+    console.log('📡 Dashboard disconnected:', socket.id);
+  });
 });
 
 // Global error handler
@@ -120,6 +140,16 @@ async function loadMetrics() {
     
     metricsCache.lastUpdated = new Date().toISOString();
     console.log('✅ Metrics cache updated successfully');
+    
+    // Emit real-time metrics update to connected clients
+    io.emit('metrics:update', {
+      budget: metricsCache.budget,
+      health: metricsCache.health,
+      tests: metricsCache.tests,
+      alerts: metricsCache.alerts,
+      timestamp: metricsCache.lastUpdated
+    });
+    console.log('📡 Metrics update emitted to connected clients');
     
   } catch (error) {
     console.error('❌ Error loading metrics:', error);
@@ -293,11 +323,12 @@ app.use('*', (req, res) => {
 });
 
 // Start server
-app.listen(PORT, async () => {
-  console.log('\n🚀 ATT System Metrics API Server');
+httpServer.listen(PORT, async () => {
+  console.log('\n🚀 ATT System Metrics API Server with WebSocket Support');
   console.log(`📡 Server running on http://localhost:${PORT}`);
   console.log(`🌐 CORS enabled for http://localhost:3000`);
-  console.log(`📊 Serving metrics for React dashboard\n`);
+  console.log(`📊 Serving metrics for React dashboard`);
+  console.log(`🔄 WebSocket live updates enabled\n`);
   
   console.log('📋 Available endpoints:');
   console.log(`   GET  http://localhost:${PORT}/api/status`);
