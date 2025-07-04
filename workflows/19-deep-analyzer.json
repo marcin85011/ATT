@@ -1,0 +1,47 @@
+{
+  "name": "19-Deep-Analyzer",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "webhook-trigger", 
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhookTrigger",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "webhookId": "deep-analyzer-19"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ATT System - Deep Analyzer Agent #19\n// GPT-4o Vision analysis of top-3 competing designs\n\nconst { trackCost } = require('../../shared/cost-tracker');\n\nasync function analyzeTopDesigns(competitionData) {\n  // Get top 3 products by BSR (lower is better)\n  const topProducts = competitionData.competition_data.top_products\n    .sort((a, b) => a.bsr - b.bsr)\n    .slice(0, 3);\n  \n  const designAnalysis = [];\n  \n  for (const product of topProducts) {\n    // Simulate image analysis (replace with actual GPT-4o Vision call)\n    const analysis = {\n      product_title: product.title,\n      bsr: product.bsr,\n      price: product.price,\n      design_gaps: [\n        'Limited color variety',\n        'Basic typography', \n        'Missing emotional appeal',\n        'Generic design approach'\n      ],\n      market_opportunities: [\n        'Modern typography upgrade',\n        'Trending color combinations',\n        'Personalization elements',\n        'Niche-specific humor'\n      ],\n      competitive_advantage: Math.floor(Math.random() * 30) + 60 // 60-90 score\n    };\n    \n    designAnalysis.push(analysis);\n  }\n  \n  return designAnalysis;\n}\n\nasync function main() {\n  const inputData = $input.first().json;\n  const niche = inputData.niche;\n  \n  console.log(`🔍 Deep analysis for high-potential niche: ${niche}`);\n  \n  try {\n    // Track Vision API cost (estimated $0.15-0.30 for 3 images)\n    await trackCost('vision_analysis', 0.25, `Agent #19 - Vision analysis for ${niche}`);\n    \n    const designAnalysis = await analyzeTopDesigns(inputData.original_data);\n    \n    // Aggregate insights\n    const aggregatedInsights = {\n      niche,\n      opportunity_score: inputData.opportunity_score,\n      top_designs_analyzed: designAnalysis.length,\n      common_gaps: [\n        'Typography modernization needed',\n        'Color strategy opportunities', \n        'Emotional connection missing',\n        'Niche personalization potential'\n      ],\n      market_entry_strategy: {\n        differentiation_angle: 'Modern typography with emotional appeal',\n        color_strategy: 'Trending color combinations',\n        price_positioning: 'Premium pricing justified by quality',\n        target_segments: ['Gift buyers', 'Self-expression seekers']\n      },\n      design_recommendations: designAnalysis,\n      competitive_advantage_score: Math.round(\n        designAnalysis.reduce((sum, d) => sum + d.competitive_advantage, 0) / designAnalysis.length\n      ),\n      analyzed_at: new Date().toISOString()\n    };\n    \n    console.log(`✅ Analyzed ${designAnalysis.length} top designs`);\n    console.log(`📊 Competitive advantage score: ${aggregatedInsights.competitive_advantage_score}`);\n    \n    return [{ json: aggregatedInsights }];\n    \n  } catch (error) {\n    console.error('❌ Deep Analyzer error:', error);\n    await trackCost('vision_analysis', 0.25, `Agent #19 - Error analyzing ${niche}`, true);\n    throw error;\n  }\n}\n\nreturn await main();"
+      },
+      "id": "deep-analyzer-code",
+      "name": "GPT-4o Vision Analysis",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [440, 300]
+    },
+    {
+      "parameters": {
+        "mode": "webhook",
+        "webhook": "={{ $env.N8N_WEBHOOK_URL }}/webhook/search-validator-20",
+        "httpMethod": "POST",
+        "body": {
+          "specifyBody": "json",
+          "jsonBody": "={{ JSON.stringify($json) }}"
+        }
+      },
+      "id": "trigger-validator",
+      "name": "Trigger Search Validator", 
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [640, 300]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": { "main": [[ { "node": "GPT-4o Vision Analysis", "type": "main", "index": 0 } ]] },
+    "GPT-4o Vision Analysis": { "main": [[ { "node": "Trigger Search Validator", "type": "main", "index": 0 } ]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": [{ "id": "agent-19", "name": "deep-analyzer" }],
+  "versionId": "v1.0-week3"
+}

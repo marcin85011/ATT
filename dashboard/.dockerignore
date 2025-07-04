@@ -1,0 +1,131 @@
+# ATT Dashboard - Docker Build Exclusions
+
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Testing
+coverage/
+.nyc_output/
+jest-results/
+.coverage/
+
+# Production build (built in container)
+build/
+dist/
+
+# Environment files (configured in container)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+!.env.example
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+logs/
+*.log
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Documentation
+README.md
+*.md
+docs/
+
+# Docker files
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+nginx.conf
+
+# Development tools
+.eslintcache
+.stylelintcache
+
+# Temporary files
+.tmp/
+tmp/
+temp/
+
+# Storybook
+storybook-static/
+
+# Optional npm cache directory
+.npm/
+
+# Microbundle cache
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# DotEnv environment variables file (if any)
+.env.test
+
+# Parcel-bundler cache (https://parceljs.org/)
+.cache
+.parcel-cache
+
+# Next.js build output
+.next
+
+# Nuxt.js build / generate output
+.nuxt
+dist
+
+# Gatsby files
+.cache/
+public
+
+# Vite build cache
+.vite/
+
+# Rollup cache
+.rollup.cache/
+
+# SvelteKit build / generate output
+.svelte-kit
+
+# Cypress
+cypress/videos/
+cypress/screenshots/
+cypress/downloads/

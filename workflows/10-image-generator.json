@@ -1,0 +1,66 @@
+{
+  "name": "10-Image-Generator",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "webhook-trigger",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhookTrigger",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "webhookId": "image-generator-10"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ATT System - Image Generator Agent #10 - PRODUCTION\n// Real Replicate Imagen 4 Pro generation (1024×1024 PNG for efficiency)\n\nconst { trackCost } = require('../../shared/cost-tracker');\nconst { errorHandler } = require('../../shared/error-handler');\nconst { ReplicateClient } = require('../../clients/replicate-client');\n\nasync function generateImageWithReplicate(prompt, negativePrompt) {\n  const replicateToken = process.env.REPLICATE_API_TOKEN;\n  \n  if (!replicateToken) {\n    throw new Error('REPLICATE_API_TOKEN environment variable not set');\n  }\n  \n  const client = new ReplicateClient(replicateToken);\n  \n  console.log(`🎨 Real image generation with prompt: ${prompt.substring(0, 100)}...`);\n  \n  // Enhanced prompt optimization for t-shirt designs\n  const optimizedPrompt = `${prompt}, high quality t-shirt design, vector style, clean lines, transparent background, print-ready artwork, professional quality, sharp details, no watermarks`;\n  \n  const result = await client.generateImage(optimizedPrompt, {\n    width: 1024,\n    height: 1024,\n    aspectRatio: '1:1',\n    numImages: 1,\n    guidanceScale: 7,\n    seed: null,\n    format: 'png',\n    quality: 'high'\n  });\n  \n  if (!result.success) {\n    throw new Error(`Replicate image generation failed: ${result.error}`);\n  }\n  \n  return {\n    prompt: optimizedPrompt,\n    negative_prompt: negativePrompt,\n    generated_images: result.images,\n    primary_url: result.images[0],\n    generation_cost: result.metadata.cost,\n    generation_time: result.metadata.processingTime,\n    prediction_id: result.metadata.predictionId,\n    model: result.metadata.model,\n    parameters: result.metadata.parameters\n  };\n}\n\nasync function main() {\n  const inputData = $input.first().json;\n  const niche = inputData.niche;\n  const replicatePrompt = inputData.replicate_ready?.prompt;\n  \n  console.log(`🎨 Real image generation for: ${niche}`);\n  \n  try {\n    // Only proceed if IP approved\n    if (inputData.ip_status !== 'approved') {\n      console.log(`⛔ Skipping generation - IP status: ${inputData.ip_status}`);\n      return [{ json: { skipped: true, reason: 'ip_not_approved', niche, ip_status: inputData.ip_status } }];\n    }\n    \n    if (!replicatePrompt) {\n      throw new Error('No Replicate prompt available for image generation');\n    }\n    \n    // Enhanced negative prompt for professional t-shirt designs\n    const negativePrompt = 'blurry, low quality, pixelated, watermark, signature, text overlay, copyrighted logos, brand names, trademarked symbols, complex backgrounds, photo-realistic faces, celebrity likenesses, offensive content, inappropriate imagery, explicit content, violence, drugs, weapons';\n    \n    // Track real image generation cost\n    await trackCost('image_generation', 0.005, `Agent #10 - Real image generation for ${niche}`);\n    \n    const imageResult = await generateImageWithReplicate(replicatePrompt, negativePrompt);\n    \n    // Validate generated image\n    if (!imageResult.primary_url) {\n      throw new Error('No image URL returned from Replicate generation');\n    }\n    \n    const result = {\n      niche,\n      image_generation: imageResult,\n      image_url: imageResult.primary_url,\n      all_images: imageResult.generated_images,\n      generation_cost: imageResult.generation_cost,\n      processing_time: imageResult.generation_time,\n      image_specs: {\n        resolution: '1024x1024',\n        format: 'PNG',\n        aspect_ratio: '1:1',\n        print_ready: true,\n        dpi_equivalent: 300,\n        optimized_for: 'print_on_demand'\n      },\n      replicate_metadata: {\n        prediction_id: imageResult.prediction_id,\n        model: imageResult.model,\n        parameters: imageResult.parameters\n      },\n      agent_source: 'image-generator-10',\n      generated_at: new Date().toISOString(),\n      real_api: true\n    };\n    \n    console.log(`✅ Real image generated: ${imageResult.primary_url}`);\n    console.log(`💰 Generation cost: $${imageResult.generation_cost}`);\n    console.log(`⏱️ Processing time: ${imageResult.generation_time}s`);\n    console.log(`🔗 Prediction ID: ${imageResult.prediction_id}`);\n    \n    // Success heartbeat\n    await trackCost('system_health', 0.001, 'Agent #10 - Success heartbeat');\n    \n    return [{ json: result }];\n    \n  } catch (error) {\n    console.error('❌ Real Image Generator error:', error);\n    await errorHandler('image-generator-10', error, { niche });\n    throw error;\n  }\n}\n\nreturn await main();"
+      },
+      "id": "image-generator-code",
+      "name": "Replicate Imagen 4 Pro",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [440, 300]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "{{ $env.NOTION_DATABASE_ID }}",
+          "mode": "id"
+        },
+        "pageId": "={{ $json.niche }}",
+        "properties": {
+          "Image URL": {
+            "type": "url",
+            "url": "={{ $json.image_url }}"
+          },
+          "Generation Cost": {
+            "type": "number",
+            "number": "={{ $json.generation_cost }}"
+          },
+          "Image Specs": {
+            "type": "text",
+            "text": [{ "type": "text", "text": "={{ JSON.stringify($json.image_specs) }}" }]
+          },
+          "Generated At": {
+            "type": "date",
+            "date": { "start": "={{ $json.generated_at }}" }
+          }
+        }
+      },
+      "id": "update-image-data",
+      "name": "Update TaskDB Image Data",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2,
+      "position": [640, 300],
+      "retryOnFail": true
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": { "main": [[ { "node": "Replicate Imagen 4 Pro", "type": "main", "index": 0 } ]] },
+    "Replicate Imagen 4 Pro": { "main": [[ { "node": "Update TaskDB Image Data", "type": "main", "index": 0 } ]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": [{ "id": "agent-10", "name": "image-generator" }],
+  "versionId": "v1.0-week5"
+}

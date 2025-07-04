@@ -1,0 +1,36 @@
+.env
+node_modules/
+*.log
+.DS_Store
+
+# Runtime cost and error tracking files
+cost-tracking.json
+cost-tracking.jsonl
+error-log.json
+error-log.jsonl
+cost-tracking-test.json
+
+# PM2 logs
+logs/*.log
+logs/*.json
+
+# Security-related files
+.env.local
+.env.production
+.env.staging
+credentials.json
+*.key
+*.pem
+*.p12
+*.pfx
+secrets.txt
+.secrets.baseline
+
+# IDE-specific files that might contain secrets
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+
+# OS-specific files
+Thumbs.db

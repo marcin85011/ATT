@@ -1,0 +1,37 @@
+# Pre-commit hooks for security and code quality
+repos:
+  # Secret detection
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.4.0
+    hooks:
+      - id: detect-secrets
+        args: ['--baseline', '.secrets.baseline']
+        exclude: |
+          (?x)^(
+            .*\.lock$|
+            .*\.json$|
+            .*\.log$|
+            node_modules/.*|
+            coverage/.*|
+            dist/.*|
+            build/.*
+          )$
+
+  # General security checks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      - id: detect-private-key
+      - id: check-added-large-files
+        args: ['--maxkb=1000']
+      - id: check-merge-conflict
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+
+  # Additional security scanning
+  - repo: https://github.com/Checkov-ci/checkov
+    rev: 2.5.33
+    hooks:
+      - id: checkov
+        args: [--framework=secrets]
+        verbose: true

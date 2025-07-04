@@ -1,0 +1,2 @@
+Test Path,Duration (ms),Passed,Failed,Cost,Budget Status
+/mnt/c/Users/marci/OneDrive/Pulpit/n8n/tests/unit/api-clients/google-keyword-client.test.js,5309,3,27,0.0000,OK

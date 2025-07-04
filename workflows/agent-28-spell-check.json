@@ -1,0 +1,191 @@
+{
+  "name": "Agent #28 - Spell Check QC",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "spell-check",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [140, 300],
+      "webhookId": "spell-check-28"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Agent #28 Spell Check - Input Processing\n// Production-ready input validation and processing\n\nconst { GrammarlyClient } = require('../clients/grammarly-client');\nconst { validateEnvironment } = require('../shared/utils');\n\nconst inputData = $input.first().json;\nconst designText = inputData.text || inputData.title || '';\nconst designId = inputData.design_id || 'unknown';\n\nif (!designText) {\n  throw new Error('No text content provided for spell checking');\n}\n\n// Initialize client\nconst client = new GrammarlyClient();\n\n// Check environment\nconst envCheck = validateEnvironment(['GRAMMARLY_API_KEY']);\nif (!envCheck.valid && process.env.MOCK_MODE !== 'true') {\n  throw new Error('Grammarly API key required unless in mock mode');\n}\n\nconsole.log(`🔤 Agent #28 processing spell check for design: ${designId}`);\nconsole.log(`📝 Text to check: ${designText.substring(0, 100)}...`);\n\nreturn {\n  design_id: designId,\n  text_content: designText,\n  options: inputData.options || {},\n  timestamp: new Date().toISOString(),\n  agent: 'spell-check-28'\n};"
+      },
+      "id": "process-input",
+      "name": "Process Input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [340, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Agent #28 - Grammarly Spell Check Execution\n// Production implementation with full error handling\n\nconst { GrammarlyClient } = require('../clients/grammarly-client');\nconst { errorHandler } = require('../shared/error-handler');\n\nconst data = $input.first().json;\n\ntry {\n  const client = new GrammarlyClient();\n  \n  // Perform spell check\n  const spellCheckResult = await client.checkText(data.text_content, data.options);\n  \n  console.log(`✅ Spell check completed for ${data.design_id}`);\n  console.log(`📊 Status: ${spellCheckResult.status}`);\n  console.log(`🎯 Grammar Score: ${spellCheckResult.grammar_score}`);\n  console.log(`💡 Spelling Errors: ${spellCheckResult.spelling_errors}`);\n  \n  return {\n    ...data,\n    qc_result: spellCheckResult,\n    success: true,\n    completed_at: new Date().toISOString()\n  };\n  \n} catch (error) {\n  console.error(`❌ Spell check failed for ${data.design_id}:`, error.message);\n  \n  await errorHandler('spell-check-28', error, {\n    design_id: data.design_id,\n    text_length: data.text_content?.length || 0\n  });\n  \n  return {\n    ...data,\n    qc_result: {\n      agent: 'spell-check-28',\n      status: 'fail',\n      error: error.message,\n      processing_time_ms: 0,\n      cost: 0\n    },\n    success: false,\n    error: error.message,\n    completed_at: new Date().toISOString()\n  };\n}"
+      },
+      "id": "spell-check-execution",
+      "name": "Spell Check Execution",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [540, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [],
+          "dateTime": [],
+          "number": [],
+          "string": [
+            {
+              "id": "success-check",
+              "leftValue": "={{ $json.success }}",
+              "rightValue": "true",
+              "operation": "equal"
+            }
+          ]
+        },
+        "combineOperation": "all"
+      },
+      "id": "check-success",
+      "name": "Check Success",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [740, 300]
+    },
+    {
+      "parameters": {
+        "authentication": "headerAuth",
+        "resource": "databaseItem",
+        "operation": "create",
+        "databaseId": "={{ $env.NOTION_QC_DATABASE_ID }}",
+        "simple": false,
+        "properties": {\n          \"metaData\": [\n            {\n              \"key\": \"Design ID\",\n              \"type\": \"title\",\n              \"value\": \"={{ $json.design_id }}\"\n            },\n            {\n              \"key\": \"Agent\",\n              \"type\": \"select\",\n              \"value\": \"spell-check-28\"\n            },\n            {\n              \"key\": \"Status\",\n              \"type\": \"select\",\n              \"value\": \"={{ $json.qc_result.status }}\"\n            },\n            {\n              \"key\": \"Score\",\n              \"type\": \"number\",\n              \"value\": \"={{ $json.qc_result.grammar_score || 0 }}\"\n            },\n            {\n              \"key\": \"Results\",\n              \"type\": \"rich_text\",\n              \"value\": \"={{ JSON.stringify($json.qc_result) }}\"\n            },\n            {\n              \"key\": \"Processing Time\",\n              \"type\": \"number\",\n              \"value\": \"={{ $json.qc_result.processing_time_ms || 0 }}\"\n            },\n            {\n              \"key\": \"Cost\",\n              \"type\": \"number\",\n              \"value\": \"={{ $json.qc_result.cost || 0 }}\"\n            }\n          ]\n        }
+      },
+      "id": "save-to-notion",
+      "name": "Save to Notion QC DB",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2,
+      "position": [940, 200]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Agent #28 - Error Handling and Logging\n// Production error tracking with detailed context\n\nconst data = $input.first().json;\n\nconsole.error(`❌ Agent #28 failed for design: ${data.design_id}`);\nconsole.error(`Error: ${data.error}`);\n\n// Log to error tracking system\nconst errorEntry = {\n  agent: 'spell-check-28',\n  design_id: data.design_id,\n  error: data.error,\n  timestamp: new Date().toISOString(),\n  retry_count: data.retry_count || 0\n};\n\nconsole.log('Error entry:', JSON.stringify(errorEntry, null, 2));\n\nreturn {\n  ...data,\n  error_logged: true,\n  error_entry: errorEntry\n};"
+      },
+      "id": "handle-error",
+      "name": "Handle Error",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [940, 400]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({\n  agent: 'spell-check-28',\n  design_id: $json.design_id,\n  success: $json.success,\n  status: $json.qc_result.status,\n  result: $json.qc_result,\n  timestamp: $json.completed_at\n}) }}"
+      },
+      "id": "respond-webhook",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1140, 300]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Process Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Input": {
+      "main": [
+        [
+          {
+            "node": "Spell Check Execution",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Spell Check Execution": {
+      "main": [
+        [
+          {
+            "node": "Check Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Success": {
+      "main": [
+        [
+          {
+            "node": "Save to Notion QC DB",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Handle Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save to Notion QC DB": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Handle Error": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "1.0-week6-alpha",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "att-system-agent-28"
+  },
+  "id": "agent-28-spell-check",
+  "tags": [
+    {
+      "createdAt": "2024-12-30T00:00:00.000Z",
+      "updatedAt": "2024-12-30T00:00:00.000Z",
+      "id": "qc-agents",
+      "name": "QC Agents"
+    }
+  ]
+}

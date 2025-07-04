@@ -1,0 +1,76 @@
+{
+  "name": "05-Competitor-SERP",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "webhook-trigger",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhookTrigger",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "webhookId": "competitor-serp-05"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ATT System - Competitor SERP Agent #05 - PRODUCTION\n// Real Firecrawl SERP scrape (top-5) → CompetitorsDB\n\nconst { trackCost } = require('../../shared/cost-tracker');\nconst { isDuplicateTopic } = require('../../shared/utils');\nconst { errorHandler } = require('../../shared/error-handler');\nconst { FirecrawlClient } = require('../../clients/firecrawl-client');\n\nasync function scrapeCompetitorSERP(niche) {\n  const searchQuery = `${niche} t-shirt amazon\"`;\n  const firecrawlApiKey = process.env.FIRECRAWL_API_KEY;\n  \n  if (!firecrawlApiKey) {\n    throw new Error('FIRECRAWL_API_KEY environment variable not set');\n  }\n  \n  const client = new FirecrawlClient(firecrawlApiKey);\n  \n  console.log(`🔍 Real SERP scraping with query: ${searchQuery}`);\n  \n  const serpResult = await client.scrapeSerp(searchQuery, {\n    market: 'us',\n    language: 'en',\n    maxResults: 20,\n    includeMetadata: true\n  });\n  \n  if (!serpResult.success) {\n    throw new Error(`Firecrawl SERP failed: ${serpResult.error}`);\n  }\n  \n  // Extract top 5 Amazon product competitors\n  const amazonResults = serpResult.results\n    .filter(r => r.domain.includes('amazon.com') && r.url.includes('/dp/'))\n    .slice(0, 5);\n  \n  const topCompetitors = amazonResults.map((result, index) => {\n    // Extract ASIN from Amazon URL\n    const asinMatch = result.url.match(/\\/dp\\/([A-Z0-9]{10})/);\n    const asin = asinMatch ? asinMatch[1] : `UNKNOWN_${index}`;\n    \n    return {\n      rank: index + 1,\n      title: result.title,\n      url: result.url,\n      asin: asin,\n      domain: result.domain,\n      snippet: result.snippet || '',\n      relevanceScore: result.relevanceScore || 0,\n      image_url: `https://images-na.ssl-images-amazon.com/images/P/${asin}.01.L.jpg`\n    };\n  });\n  \n  return {\n    search_query: searchQuery,\n    scrape_timestamp: new Date().toISOString(),\n    total_serp_results: serpResult.totalResults,\n    amazon_results_found: amazonResults.length,\n    top_competitors: topCompetitors,\n    firecrawl_metadata: serpResult.metadata\n  };\n}\n\nasync function main() {\n  const inputData = $input.first().json;\n  const niche = inputData.niche;\n  \n  console.log(`🔍 Real SERP scraping for competitors: ${niche}`);\n  \n  try {\n    // Check for duplicates\n    if (await isDuplicateTopic(`${niche}_serp`)) {\n      console.log(`⏭️ Skipping duplicate SERP scrape: ${niche}`);\n      return [{ json: { skipped: true, reason: 'duplicate_serp', niche } }];\n    }\n    \n    // Track real Firecrawl API cost\n    await trackCost('firecrawl_serp', 0.002, `Agent #05 - Real SERP scraping for ${niche}`);\n    \n    const serpData = await scrapeCompetitorSERP(niche);\n    \n    // Calculate metrics from real data\n    const competitors = serpData.top_competitors;\n    const hasCompetitors = competitors.length > 0;\n    \n    const result = {\n      niche,\n      serp_data: serpData,\n      competitor_count: competitors.length,\n      has_amazon_presence: hasCompetitors,\n      competition_density: serpData.amazon_results_found / Math.max(1, serpData.total_serp_results) * 100,\n      top_competitor_asins: competitors.map(c => c.asin),\n      average_relevance: hasCompetitors ? \n        (competitors.reduce((sum, c) => sum + (c.relevanceScore || 0), 0) / competitors.length).toFixed(3) : 0,\n      agent_source: 'competitor-serp-05',\n      processed_at: new Date().toISOString(),\n      real_api: true\n    };\n    \n    console.log(`✅ Found ${competitors.length} Amazon competitors`);\n    console.log(`📊 Competition density: ${result.competition_density.toFixed(1)}%`);\n    console.log(`🎯 Average relevance: ${result.average_relevance}`);\n    \n    // Success heartbeat\n    await trackCost('system_health', 0.001, 'Agent #05 - Success heartbeat');\n    \n    return [{ json: result }];\n    \n  } catch (error) {\n    console.error('❌ Real Competitor SERP error:', error);\n    await errorHandler('competitor-serp-05', error, { niche });\n    throw error;\n  }\n}\n\nreturn await main();"
+      },
+      "id": "serp-scraper-code",
+      "name": "Firecrawl SERP Scraper",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [440, 300]
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "{{ $env.NOTION_DATABASE_ID }}",
+          "mode": "id"
+        },
+        "properties": {
+          "title": "={{ $json.niche }}_competitors",
+          "properties": {
+            "Niche": {
+              "type": "text",
+              "text": [{ "type": "text", "text": "={{ $json.niche }}" }]
+            },
+            "Competitor Count": {
+              "type": "number",
+              "number": "={{ $json.competitor_count }}"
+            },
+            "Average Price": {
+              "type": "number",
+              "number": "={{ parseFloat($json.average_price) }}"
+            },
+            "Average Rating": {
+              "type": "number",
+              "number": "={{ parseFloat($json.average_rating) }}"
+            },
+            "SERP Data": {
+              "type": "text",
+              "text": [{ "type": "text", "text": "={{ JSON.stringify($json.serp_data) }}" }]
+            },
+            "Agent": {
+              "type": "text",
+              "text": [{ "type": "text", "text": "competitor-serp-05" }]
+            }
+          }
+        }
+      },
+      "id": "save-to-competitorsdb",
+      "name": "Save to CompetitorsDB",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2,
+      "position": [640, 300],
+      "retryOnFail": true
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": { "main": [[ { "node": "Firecrawl SERP Scraper", "type": "main", "index": 0 } ]] },
+    "Firecrawl SERP Scraper": { "main": [[ { "node": "Save to CompetitorsDB", "type": "main", "index": 0 } ]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": [{ "id": "agent-05", "name": "competitor-serp" }],
+  "versionId": "v1.0-week4"
+}

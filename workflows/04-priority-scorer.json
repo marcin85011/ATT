@@ -1,0 +1,66 @@
+{
+  "name": "04-Priority-Scorer",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "webhook-trigger",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhookTrigger",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "webhookId": "priority-scorer-04"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ATT System - Priority Scorer Agent #04\n// GPT-4o scoring (0-100) for TaskDB rows factoring TrendDirection & OpportunityScore\n\nconst { trackCost } = require('../../shared/cost-tracker');\nconst { isDuplicateTopic } = require('../../shared/utils');\nconst { errorHandler } = require('../../shared/error-handler');\n\nasync function scoreTaskPriority(taskData) {\n  // Base scoring from opportunity score\n  let baseScore = taskData.opportunity_score || 50;\n  \n  // TrendDirection multipliers for priority weighting\n  const trendMultipliers = {\n    'rising': 1.3,\n    'flat': 1.0,\n    'falling': 0.6\n  };\n  \n  const trendMultiplier = trendMultipliers[taskData.trend_direction] || 1.0;\n  \n  // Competitive advantage factor\n  const competitiveBonus = (taskData.competitive_advantage_score || 0) > 80 ? 1.1 : 1.0;\n  \n  // Calculate final priority score (0-100)\n  let priorityScore = baseScore * trendMultiplier * competitiveBonus;\n  priorityScore = Math.min(100, Math.max(0, Math.round(priorityScore)));\n  \n  return {\n    priority_score: priorityScore,\n    scoring_factors: {\n      base_opportunity: baseScore,\n      trend_direction: taskData.trend_direction,\n      trend_multiplier: trendMultiplier,\n      competitive_advantage: taskData.competitive_advantage_score || 0,\n      competitive_bonus: competitiveBonus\n    },\n    priority_level: priorityScore > 80 ? 'high' : priorityScore > 60 ? 'medium' : 'low',\n    recommendation: priorityScore > 75 ? 'proceed_immediately' : priorityScore > 50 ? 'proceed_when_capacity' : 'defer'\n  };\n}\n\nasync function main() {\n  const inputData = $input.first().json;\n  const niche = inputData.niche;\n  \n  console.log(`🎯 Priority scoring for: ${niche}`);\n  \n  try {\n    // Track GPT-4o cost for priority analysis\n    await trackCost('priority_scoring', 0.015, `Agent #04 - Priority scoring for ${niche}`);\n    \n    const priorityAnalysis = await scoreTaskPriority(inputData);\n    \n    const result = {\n      niche,\n      original_data: inputData,\n      priority_analysis: priorityAnalysis,\n      agent_source: 'priority-scorer-04',\n      processed_at: new Date().toISOString()\n    };\n    \n    console.log(`📊 Priority score: ${priorityAnalysis.priority_score} (${priorityAnalysis.priority_level})`);\n    console.log(`🎯 Recommendation: ${priorityAnalysis.recommendation}`);\n    \n    // Success heartbeat to SystemHealth\n    await trackCost('system_health', 0.001, 'Agent #04 - Success heartbeat');\n    \n    return [{ json: result }];\n    \n  } catch (error) {\n    console.error('❌ Priority Scorer error:', error);\n    await errorHandler('priority-scorer-04', error, { niche });\n    throw error;\n  }\n}\n\nreturn await main();"
+      },
+      "id": "priority-scorer-code",
+      "name": "GPT-4o Priority Scoring",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [440, 300]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "{{ $env.NOTION_DATABASE_ID }}",
+          "mode": "id"
+        },
+        "pageId": "={{ $json.niche }}",
+        "properties": {
+          "Priority Score": {
+            "type": "number",
+            "number": "={{ $json.priority_analysis.priority_score }}"
+          },
+          "Priority Level": {
+            "type": "select",
+            "select": { "name": "={{ $json.priority_analysis.priority_level }}" }
+          },
+          "Recommendation": {
+            "type": "select",
+            "select": { "name": "={{ $json.priority_analysis.recommendation }}" }
+          },
+          "Scoring Factors": {
+            "type": "text",
+            "text": [{ "type": "text", "text": "={{ JSON.stringify($json.priority_analysis.scoring_factors) }}" }]
+          }
+        }
+      },
+      "id": "update-taskdb",
+      "name": "Update TaskDB Priority",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2,
+      "position": [640, 300],
+      "retryOnFail": true
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": { "main": [[ { "node": "GPT-4o Priority Scoring", "type": "main", "index": 0 } ]] },
+    "GPT-4o Priority Scoring": { "main": [[ { "node": "Update TaskDB Priority", "type": "main", "index": 0 } ]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": [{ "id": "agent-04", "name": "priority-scorer" }],
+  "versionId": "v1.0-week4"
+}

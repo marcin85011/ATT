@@ -1,0 +1,470 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="30" failures="27" errors="0" time="5.481">
+  <testsuite name="GoogleKeywordClient" errors="0" failures="27" skipped="0" timestamp="2025-07-03T22:24:10" time="4.923" tests="30">
+    <testcase classname="GoogleKeywordClient › Constructor" name="should initialize with correct properties" time="0.005">
+      <failure>TypeError: global.fetch.mockClear is not a function
+    at Object.mockClear (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/tests/unit/api-clients/google-keyword-client.test.js:30:20)
+    at Promise.then.completed (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/utils.js:231:10)
+    at _callCircusHook (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:281:40)
+    at _runTest (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:246:5)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:126:9)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:121:9)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:121:9)
+    at run (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:71:3)
+    at runAndTransformResultsToJestFormat (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)
+    at jestAdapter (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)
+    at runTestInternal (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-runner/build/runTest.js:367:16)
+    at runTest (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-runner/build/runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="GoogleKeywordClient › Constructor" name="should use environment API key if available" time="0.001">
+      <failure>TypeError: global.fetch.mockClear is not a function
+    at Object.mockClear (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/tests/unit/api-clients/google-keyword-client.test.js:30:20)
+    at Promise.then.completed (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/utils.js:231:10)
+    at _callCircusHook (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:281:40)
+    at _runTest (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:246:5)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:126:9)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:121:9)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:121:9)
+    at run (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:71:3)
+    at runAndTransformResultsToJestFormat (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)
+    at jestAdapter (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)
+    at runTestInternal (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-runner/build/runTest.js:367:16)
+    at runTest (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-runner/build/runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="GoogleKeywordClient › getSearchVolume()" name="should return processed search volume data with agent ID" time="0.001">
+      <failure>TypeError: global.fetch.mockClear is not a function
+    at Object.mockClear (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/tests/unit/api-clients/google-keyword-client.test.js:30:20)
+    at Promise.then.completed (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/utils.js:231:10)
+    at _callCircusHook (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:281:40)
+    at _runTest (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:246:5)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:126:9)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:121:9)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:121:9)
+    at run (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:71:3)
+    at runAndTransformResultsToJestFormat (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)
+    at jestAdapter (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)
+    at runTestInternal (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-runner/build/runTest.js:367:16)
+    at runTest (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-runner/build/runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="GoogleKeywordClient › getSearchVolume()" name="should handle different API response formats" time="0.001">
+      <failure>TypeError: global.fetch.mockClear is not a function
+    at Object.mockClear (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/tests/unit/api-clients/google-keyword-client.test.js:30:20)
+    at Promise.then.completed (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/utils.js:231:10)
+    at _callCircusHook (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:281:40)
+    at _runTest (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:246:5)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:126:9)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:121:9)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:121:9)
+    at run (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:71:3)
+    at runAndTransformResultsToJestFormat (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)
+    at jestAdapter (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)
+    at runTestInternal (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-runner/build/runTest.js:367:16)
+    at runTest (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-runner/build/runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="GoogleKeywordClient › getSearchVolume()" name="should retry on failure and return fallback data" time="0.001">
+      <failure>TypeError: global.fetch.mockClear is not a function
+    at Object.mockClear (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/tests/unit/api-clients/google-keyword-client.test.js:30:20)
+    at Promise.then.completed (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/utils.js:231:10)
+    at _callCircusHook (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:281:40)
+    at _runTest (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:246:5)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:126:9)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:121:9)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:121:9)
+    at run (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:71:3)
+    at runAndTransformResultsToJestFormat (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)
+    at jestAdapter (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)
+    at runTestInternal (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-runner/build/runTest.js:367:16)
+    at runTest (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-runner/build/runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="GoogleKeywordClient › getSearchVolume()" name="should handle HTTP error responses" time="0.001">
+      <failure>TypeError: global.fetch.mockClear is not a function
+    at Object.mockClear (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/tests/unit/api-clients/google-keyword-client.test.js:30:20)
+    at Promise.then.completed (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/utils.js:231:10)
+    at _callCircusHook (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:281:40)
+    at _runTest (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:246:5)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:126:9)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:121:9)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:121:9)
+    at run (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:71:3)
+    at runAndTransformResultsToJestFormat (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)
+    at jestAdapter (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)
+    at runTestInternal (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-runner/build/runTest.js:367:16)
+    at runTest (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-runner/build/runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="GoogleKeywordClient › getSearchVolume()" name="should process trend data when available" time="0.001">
+      <failure>TypeError: global.fetch.mockClear is not a function
+    at Object.mockClear (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/tests/unit/api-clients/google-keyword-client.test.js:30:20)
+    at Promise.then.completed (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/utils.js:231:10)
+    at _callCircusHook (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:281:40)
+    at _runTest (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:246:5)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:126:9)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:121:9)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:121:9)
+    at run (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:71:3)
+    at runAndTransformResultsToJestFormat (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)
+    at jestAdapter (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)
+    at runTestInternal (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-runner/build/runTest.js:367:16)
+    at runTest (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-runner/build/runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="GoogleKeywordClient › getKeywordSuggestions()" name="should return processed keyword suggestions with agent ID" time="0.001">
+      <failure>TypeError: global.fetch.mockClear is not a function
+    at Object.mockClear (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/tests/unit/api-clients/google-keyword-client.test.js:30:20)
+    at Promise.then.completed (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/utils.js:231:10)
+    at _callCircusHook (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:281:40)
+    at _runTest (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:246:5)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:126:9)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:121:9)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:121:9)
+    at run (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:71:3)
+    at runAndTransformResultsToJestFormat (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)
+    at jestAdapter (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)
+    at runTestInternal (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-runner/build/runTest.js:367:16)
+    at runTest (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-runner/build/runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="GoogleKeywordClient › getKeywordSuggestions()" name="should handle array-based response format" time="0.001">
+      <failure>TypeError: global.fetch.mockClear is not a function
+    at Object.mockClear (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/tests/unit/api-clients/google-keyword-client.test.js:30:20)
+    at Promise.then.completed (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/utils.js:231:10)
+    at _callCircusHook (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:281:40)
+    at _runTest (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:246:5)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:126:9)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:121:9)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:121:9)
+    at run (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:71:3)
+    at runAndTransformResultsToJestFormat (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)
+    at jestAdapter (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)
+    at runTestInternal (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-runner/build/runTest.js:367:16)
+    at runTest (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-runner/build/runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="GoogleKeywordClient › getKeywordSuggestions()" name="should limit suggestions to 20 items" time="0.001">
+      <failure>TypeError: global.fetch.mockClear is not a function
+    at Object.mockClear (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/tests/unit/api-clients/google-keyword-client.test.js:30:20)
+    at Promise.then.completed (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/utils.js:231:10)
+    at _callCircusHook (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:281:40)
+    at _runTest (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:246:5)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:126:9)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:121:9)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:121:9)
+    at run (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:71:3)
+    at runAndTransformResultsToJestFormat (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)
+    at jestAdapter (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)
+    at runTestInternal (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-runner/build/runTest.js:367:16)
+    at runTest (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-runner/build/runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="GoogleKeywordClient › getKeywordSuggestions()" name="should return fallback suggestions on error" time="0.001">
+      <failure>TypeError: global.fetch.mockClear is not a function
+    at Object.mockClear (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/tests/unit/api-clients/google-keyword-client.test.js:30:20)
+    at Promise.then.completed (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/utils.js:231:10)
+    at _callCircusHook (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:281:40)
+    at _runTest (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:246:5)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:126:9)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:121:9)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:121:9)
+    at run (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:71:3)
+    at runAndTransformResultsToJestFormat (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)
+    at jestAdapter (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)
+    at runTestInternal (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-runner/build/runTest.js:367:16)
+    at runTest (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-runner/build/runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="GoogleKeywordClient › Trend Direction Calculation" name="should calculate RISING trend from data" time="0">
+      <failure>TypeError: global.fetch.mockClear is not a function
+    at Object.mockClear (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/tests/unit/api-clients/google-keyword-client.test.js:30:20)
+    at Promise.then.completed (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/utils.js:231:10)
+    at _callCircusHook (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:281:40)
+    at _runTest (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:246:5)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:126:9)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:121:9)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:121:9)
+    at run (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:71:3)
+    at runAndTransformResultsToJestFormat (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)
+    at jestAdapter (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)
+    at runTestInternal (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-runner/build/runTest.js:367:16)
+    at runTest (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-runner/build/runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="GoogleKeywordClient › Trend Direction Calculation" name="should calculate FALLING trend from data" time="0.001">
+      <failure>TypeError: global.fetch.mockClear is not a function
+    at Object.mockClear (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/tests/unit/api-clients/google-keyword-client.test.js:30:20)
+    at Promise.then.completed (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/utils.js:231:10)
+    at _callCircusHook (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:281:40)
+    at _runTest (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:246:5)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:126:9)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:121:9)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:121:9)
+    at run (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:71:3)
+    at runAndTransformResultsToJestFormat (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)
+    at jestAdapter (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)
+    at runTestInternal (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-runner/build/runTest.js:367:16)
+    at runTest (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-runner/build/runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="GoogleKeywordClient › Trend Direction Calculation" name="should calculate STABLE trend from flat data" time="0.001">
+      <failure>TypeError: global.fetch.mockClear is not a function
+    at Object.mockClear (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/tests/unit/api-clients/google-keyword-client.test.js:30:20)
+    at Promise.then.completed (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/utils.js:231:10)
+    at _callCircusHook (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:281:40)
+    at _runTest (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:246:5)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:126:9)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:121:9)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:121:9)
+    at run (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:71:3)
+    at runAndTransformResultsToJestFormat (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)
+    at jestAdapter (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)
+    at runTestInternal (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-runner/build/runTest.js:367:16)
+    at runTest (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-runner/build/runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="GoogleKeywordClient › Trend Direction Calculation" name="should handle insufficient data" time="0">
+      <failure>TypeError: global.fetch.mockClear is not a function
+    at Object.mockClear (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/tests/unit/api-clients/google-keyword-client.test.js:30:20)
+    at Promise.then.completed (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/utils.js:231:10)
+    at _callCircusHook (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:281:40)
+    at _runTest (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:246:5)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:126:9)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:121:9)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:121:9)
+    at run (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:71:3)
+    at runAndTransformResultsToJestFormat (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)
+    at jestAdapter (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)
+    at runTestInternal (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-runner/build/runTest.js:367:16)
+    at runTest (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-runner/build/runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="GoogleKeywordClient › Trend Estimation" name="should estimate RISING for high volume + low competition" time="0">
+      <failure>TypeError: global.fetch.mockClear is not a function
+    at Object.mockClear (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/tests/unit/api-clients/google-keyword-client.test.js:30:20)
+    at Promise.then.completed (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/utils.js:231:10)
+    at _callCircusHook (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:281:40)
+    at _runTest (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:246:5)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:126:9)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:121:9)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:121:9)
+    at run (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:71:3)
+    at runAndTransformResultsToJestFormat (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)
+    at jestAdapter (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)
+    at runTestInternal (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-runner/build/runTest.js:367:16)
+    at runTest (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-runner/build/runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="GoogleKeywordClient › Trend Estimation" name="should estimate FALLING for low volume + high competition" time="0.001">
+      <failure>TypeError: global.fetch.mockClear is not a function
+    at Object.mockClear (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/tests/unit/api-clients/google-keyword-client.test.js:30:20)
+    at Promise.then.completed (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/utils.js:231:10)
+    at _callCircusHook (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:281:40)
+    at _runTest (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:246:5)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:126:9)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:121:9)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:121:9)
+    at run (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:71:3)
+    at runAndTransformResultsToJestFormat (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)
+    at jestAdapter (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)
+    at runTestInternal (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-runner/build/runTest.js:367:16)
+    at runTest (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-runner/build/runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="GoogleKeywordClient › Trend Estimation" name="should default to STABLE for medium conditions" time="0.001">
+      <failure>TypeError: global.fetch.mockClear is not a function
+    at Object.mockClear (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/tests/unit/api-clients/google-keyword-client.test.js:30:20)
+    at Promise.then.completed (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/utils.js:231:10)
+    at _callCircusHook (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:281:40)
+    at _runTest (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:246:5)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:126:9)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:121:9)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:121:9)
+    at run (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:71:3)
+    at runAndTransformResultsToJestFormat (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)
+    at jestAdapter (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)
+    at runTestInternal (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-runner/build/runTest.js:367:16)
+    at runTest (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-runner/build/runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="GoogleKeywordClient › Fallback Data Generation" name="should generate realistic fallback search volume data" time="0">
+      <failure>TypeError: global.fetch.mockClear is not a function
+    at Object.mockClear (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/tests/unit/api-clients/google-keyword-client.test.js:30:20)
+    at Promise.then.completed (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/utils.js:231:10)
+    at _callCircusHook (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:281:40)
+    at _runTest (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:246:5)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:126:9)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:121:9)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:121:9)
+    at run (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:71:3)
+    at runAndTransformResultsToJestFormat (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)
+    at jestAdapter (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)
+    at runTestInternal (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-runner/build/runTest.js:367:16)
+    at runTest (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-runner/build/runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="GoogleKeywordClient › Fallback Data Generation" name="should adjust volume based on keyword characteristics" time="0">
+      <failure>TypeError: global.fetch.mockClear is not a function
+    at Object.mockClear (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/tests/unit/api-clients/google-keyword-client.test.js:30:20)
+    at Promise.then.completed (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/utils.js:231:10)
+    at _callCircusHook (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:281:40)
+    at _runTest (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:246:5)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:126:9)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:121:9)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:121:9)
+    at run (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:71:3)
+    at runAndTransformResultsToJestFormat (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)
+    at jestAdapter (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)
+    at runTestInternal (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-runner/build/runTest.js:367:16)
+    at runTest (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-runner/build/runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="GoogleKeywordClient › Fallback Data Generation" name="should generate fallback keyword suggestions" time="0.001">
+      <failure>TypeError: global.fetch.mockClear is not a function
+    at Object.mockClear (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/tests/unit/api-clients/google-keyword-client.test.js:30:20)
+    at Promise.then.completed (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/utils.js:231:10)
+    at _callCircusHook (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:281:40)
+    at _runTest (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:246:5)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:126:9)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:121:9)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:121:9)
+    at run (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:71:3)
+    at runAndTransformResultsToJestFormat (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)
+    at jestAdapter (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)
+    at runTestInternal (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-runner/build/runTest.js:367:16)
+    at runTest (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-runner/build/runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="GoogleKeywordClient › Cost Tracking" name="should log cost tracking data" time="0.001">
+      <failure>TypeError: global.fetch.mockClear is not a function
+    at Object.mockClear (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/tests/unit/api-clients/google-keyword-client.test.js:30:20)
+    at Promise.then.completed (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/utils.js:231:10)
+    at _callCircusHook (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:281:40)
+    at _runTest (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:246:5)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:126:9)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:121:9)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:121:9)
+    at run (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:71:3)
+    at runAndTransformResultsToJestFormat (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)
+    at jestAdapter (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)
+    at runTestInternal (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-runner/build/runTest.js:367:16)
+    at runTest (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-runner/build/runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="GoogleKeywordClient › Cost Tracking" name="should handle cost tracking errors gracefully" time="0">
+      <failure>TypeError: global.fetch.mockClear is not a function
+    at Object.mockClear (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/tests/unit/api-clients/google-keyword-client.test.js:30:20)
+    at Promise.then.completed (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/utils.js:231:10)
+    at _callCircusHook (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:281:40)
+    at _runTest (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:246:5)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:126:9)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:121:9)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:121:9)
+    at run (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:71:3)
+    at runAndTransformResultsToJestFormat (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)
+    at jestAdapter (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)
+    at runTestInternal (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-runner/build/runTest.js:367:16)
+    at runTest (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-runner/build/runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="GoogleKeywordClient › Utility Methods" name="delay should wait for specified time" time="0">
+      <failure>TypeError: global.fetch.mockClear is not a function
+    at Object.mockClear (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/tests/unit/api-clients/google-keyword-client.test.js:30:20)
+    at Promise.then.completed (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/utils.js:231:10)
+    at _callCircusHook (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:281:40)
+    at _runTest (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:246:5)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:126:9)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:121:9)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:121:9)
+    at run (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:71:3)
+    at runAndTransformResultsToJestFormat (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)
+    at jestAdapter (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)
+    at runTestInternal (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-runner/build/runTest.js:367:16)
+    at runTest (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-runner/build/runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="GoogleKeywordClient › Utility Methods" name="testConnection should return true for successful API" time="0.001">
+      <failure>TypeError: global.fetch.mockClear is not a function
+    at Object.mockClear (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/tests/unit/api-clients/google-keyword-client.test.js:30:20)
+    at Promise.then.completed (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/utils.js:231:10)
+    at _callCircusHook (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:281:40)
+    at _runTest (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:246:5)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:126:9)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:121:9)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:121:9)
+    at run (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:71:3)
+    at runAndTransformResultsToJestFormat (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)
+    at jestAdapter (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)
+    at runTestInternal (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-runner/build/runTest.js:367:16)
+    at runTest (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-runner/build/runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="GoogleKeywordClient › Utility Methods" name="testConnection should return false for failed API" time="0">
+      <failure>TypeError: global.fetch.mockClear is not a function
+    at Object.mockClear (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/tests/unit/api-clients/google-keyword-client.test.js:30:20)
+    at Promise.then.completed (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/utils.js:231:10)
+    at _callCircusHook (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:281:40)
+    at _runTest (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:246:5)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:126:9)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:121:9)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:121:9)
+    at run (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:71:3)
+    at runAndTransformResultsToJestFormat (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)
+    at jestAdapter (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)
+    at runTestInternal (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-runner/build/runTest.js:367:16)
+    at runTest (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-runner/build/runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="GoogleKeywordClient › Utility Methods" name="healthCheck should return status object" time="0">
+      <failure>TypeError: global.fetch.mockClear is not a function
+    at Object.mockClear (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/tests/unit/api-clients/google-keyword-client.test.js:30:20)
+    at Promise.then.completed (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/utils.js:231:10)
+    at _callCircusHook (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:281:40)
+    at _runTest (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:246:5)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:126:9)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:121:9)
+    at _runTestsForDescribeBlock (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:121:9)
+    at run (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/run.js:71:3)
+    at runAndTransformResultsToJestFormat (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)
+    at jestAdapter (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)
+    at runTestInternal (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-runner/build/runTest.js:367:16)
+    at runTest (/mnt/c/Users/marci/OneDrive/Pulpit/n8n/node_modules/jest-runner/build/runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="Integration Scenarios" name="should handle Agent #16 competition data flow" time="0.051">
+    </testcase>
+    <testcase classname="Integration Scenarios" name="should handle Agent #20 trend validation flow" time="0.015">
+    </testcase>
+    <testcase classname="Integration Scenarios" name="should maintain proper cost tracking format" time="0.012">
+    </testcase>
+  </testsuite>
+</testsuites>

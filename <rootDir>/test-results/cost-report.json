@@ -1,0 +1,43 @@
+{
+  "summary": {
+    "totalTests": 30,
+    "passedTests": 3,
+    "failedTests": 27,
+    "skippedTests": 0,
+    "duration": 5805,
+    "totalCost": 0,
+    "averageCostPerTest": 0,
+    "timestamp": "2025-07-03T22:24:15.412Z"
+  },
+  "budgetAnalysis": {
+    "dailyBudget": 10,
+    "monthlyBudget": 200,
+    "currentSpend": 0,
+    "dailyRemaining": 10,
+    "budgetUtilization": "0.00%",
+    "projectedMonthlySpend": 0,
+    "budgetStatus": "OK"
+  },
+  "apiBreakdown": [],
+  "testDetails": [
+    {
+      "testPath": "/mnt/c/Users/marci/OneDrive/Pulpit/n8n/tests/unit/api-clients/google-keyword-client.test.js",
+      "testName": "GoogleKeywordClient Constructor should initialize with correct properties, GoogleKeywordClient Constructor should use environment API key if available, GoogleKeywordClient getSearchVolume() should return processed search volume data with agent ID, GoogleKeywordClient getSearchVolume() should handle different API response formats, GoogleKeywordClient getSearchVolume() should retry on failure and return fallback data, GoogleKeywordClient getSearchVolume() should handle HTTP error responses, GoogleKeywordClient getSearchVolume() should process trend data when available, GoogleKeywordClient getKeywordSuggestions() should return processed keyword suggestions with agent ID, GoogleKeywordClient getKeywordSuggestions() should handle array-based response format, GoogleKeywordClient getKeywordSuggestions() should limit suggestions to 20 items, GoogleKeywordClient getKeywordSuggestions() should return fallback suggestions on error, GoogleKeywordClient Trend Direction Calculation should calculate RISING trend from data, GoogleKeywordClient Trend Direction Calculation should calculate FALLING trend from data, GoogleKeywordClient Trend Direction Calculation should calculate STABLE trend from flat data, GoogleKeywordClient Trend Direction Calculation should handle insufficient data, GoogleKeywordClient Trend Estimation should estimate RISING for high volume + low competition, GoogleKeywordClient Trend Estimation should estimate FALLING for low volume + high competition, GoogleKeywordClient Trend Estimation should default to STABLE for medium conditions, GoogleKeywordClient Fallback Data Generation should generate realistic fallback search volume data, GoogleKeywordClient Fallback Data Generation should adjust volume based on keyword characteristics, GoogleKeywordClient Fallback Data Generation should generate fallback keyword suggestions, GoogleKeywordClient Cost Tracking should log cost tracking data, GoogleKeywordClient Cost Tracking should handle cost tracking errors gracefully, GoogleKeywordClient Utility Methods delay should wait for specified time, GoogleKeywordClient Utility Methods testConnection should return true for successful API, GoogleKeywordClient Utility Methods testConnection should return false for failed API, GoogleKeywordClient Utility Methods healthCheck should return status object, Integration Scenarios should handle Agent #16 competition data flow, Integration Scenarios should handle Agent #20 trend validation flow, Integration Scenarios should maintain proper cost tracking format",
+      "duration": 5309,
+      "passed": 3,
+      "failed": 27,
+      "skipped": 0,
+      "estimatedCost": 0,
+      "apiCalls": {},
+      "budgetStatus": "OK",
+      "timestamp": "2025-07-03T22:24:15.375Z"
+    }
+  ],
+  "recommendations": [],
+  "costProjections": {
+    "dailyRunCost": 0,
+    "weeklyProjection": 0,
+    "monthlyProjection": 0,
+    "yearlyProjection": 0
+  }
+}

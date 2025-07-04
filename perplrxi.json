@@ -1,0 +1,140 @@
+{
+  "name": "Enhanced Merch by Amazon AI Agent System v2.0",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 3
+            }
+          ]
+        }
+      },
+      "id": "schedule-trigger",
+      "name": "Schedule Trigger (3h)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {},
+      "id": "manual-trigger", 
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [250, 450]
+    },
+    {
+      "parameters": {
+        "content": "## 🎯 Enhanced Merch by Amazon AI Agent System v2.0\n\n### New Intelligence Features:\n- **Product Performance Scoring**: Bella+Canvas & Gildan preference\n- **Color Strategy**: 45% success with black/white combos\n- **A10 Algorithm Optimization**: External traffic focus\n- **Creative Mutations**: 20% experimental designs\n- **Negative Keyword Learning**: Prunes failed strategies\n- **Mobile-First Enforcement**: 160px thumbnail testing\n- **Dynamic Pricing Tiers**: Based on seller level\n- **Enhanced IP Protection**: Zero-tolerance compliance\n\n### Key Metrics:\n- Text-only designs: 23% conversion rate\n- BSR visibility cliff: 500k threshold\n- Mobile traffic: 77% of all views\n- Thumbnail CTR target: >2.5%"
+      },
+      "id": "system-overview",
+      "name": "Enhanced System Overview", 
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [450, 100]
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "documentId": "1KvkT4RRypuLjU_QqrynZ7DRkPisV8XFIXmE_r31HTDk",
+        "sheetName": "AgentMemory",
+        "options": {
+          "returnAllColumns": true
+        }
+      },
+      "id": "load-agent-memory",
+      "name": "Load Agent Memory",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.2,
+      "position": [450, 300],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "YOUR_GOOGLE_SHEETS_CREDENTIAL_ID",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll", 
+        "documentId": "1KvkT4RRypuLjU_QqrynZ7DRkPisV8XFIXmE_r31HTDk",
+        "sheetName": "NegativeKeywords",
+        "options": {
+          "returnAllColumns": true
+        }
+      },
+      "id": "load-negative-keywords",
+      "name": "Load Negative Keywords",
+      "type": "n8n-nodes-base.googleSheets", 
+      "typeVersion": 4.2,
+      "position": [450, 400],
+      "continueOnFail": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "YOUR_GOOGLE_SHEETS_CREDENTIAL_ID",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Schedule Trigger (3h)": {
+      "main": [
+        [
+          {
+            "node": "Load Agent Memory",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Load Negative Keywords", 
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Load Agent Memory",
+            "type": "main", 
+            "index": 0
+          },
+          {
+            "node": "Load Negative Keywords",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Agent Memory": {
+      "main": [
+        [
+          {
+            "node": "Initialize Enhanced Amazon System",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Negative Keywords": {
+      "main": [
+        [
+          {
+            "node": "Initialize Enhanced Amazon System", 
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {}
+}

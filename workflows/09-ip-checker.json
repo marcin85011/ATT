@@ -1,0 +1,66 @@
+{
+  "name": "09-IP-Checker",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "webhook-trigger",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhookTrigger",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "webhookId": "ip-checker-09"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ATT System - IP Checker Agent #09 - PRODUCTION\n// Real USPTO + EUIPO trademark checks via production APIs\n\nconst { trackCost } = require('../../shared/cost-tracker');\nconst { isDuplicateTopic } = require('../../shared/utils');\nconst { errorHandler } = require('../../shared/error-handler');\nconst { TrademarkClient } = require('../../clients/trademark-client');\n\nasync function performTrademarkChecks(searchTerms) {\n  const usptoApiKey = process.env.USPTO_API_KEY;\n  const euipoApiKey = process.env.EUIPO_API_KEY;\n  \n  if (!usptoApiKey || !euipoApiKey) {\n    throw new Error('USPTO_API_KEY or EUIPO_API_KEY environment variables not set');\n  }\n  \n  const client = new TrademarkClient(usptoApiKey, euipoApiKey);\n  \n  console.log(`🔍 Real trademark checking for terms: ${searchTerms.join(', ')}`);\n  \n  // Check multiple search terms for comprehensive coverage\n  const results = [];\n  \n  for (const term of searchTerms.slice(0, 3)) { // Limit to 3 terms to control costs\n    if (term.length < 3) continue;\n    \n    console.log(`🔍 Checking trademark for: ${term}`);\n    \n    const checkResult = await client.checkTrademark(term, {\n      regions: ['US', 'EU'],\n      includeInactive: false,\n      fuzzyMatch: true,\n      classNumbers: [25] // Class 25 = Clothing\n    });\n    \n    if (checkResult.success) {\n      results.push({\n        term,\n        ...checkResult.data\n      });\n    } else {\n      console.warn(`⚠️ Trademark check failed for ${term}: ${checkResult.error}`);\n      results.push({\n        term,\n        error: checkResult.error,\n        overallRisk: 'UNKNOWN',\n        totalMatches: 0,\n        highRiskMatches: []\n      });\n    }\n    \n    // Rate limiting between checks\n    await new Promise(resolve => setTimeout(resolve, 1000));\n  }\n  \n  return results;\n}\n\nfunction analyzeTrademarkRisk(trademarkResults) {\n  let maxRiskLevel = 'MINIMAL';\n  let totalMatches = 0;\n  let totalHighRisk = 0;\n  let criticalFlags = [];\n  let highRiskFlags = [];\n  \n  trademarkResults.forEach(result => {\n    if (result.error) {\n      return; // Skip errored results\n    }\n    \n    totalMatches += result.totalMatches || 0;\n    totalHighRisk += result.highRiskMatches?.length || 0;\n    \n    // Check for critical risks\n    if (result.overallRisk === 'CRITICAL') {\n      maxRiskLevel = 'CRITICAL';\n      criticalFlags.push(`CRITICAL risk for \"${result.term}\"`);\n    } else if (result.overallRisk === 'HIGH' && maxRiskLevel !== 'CRITICAL') {\n      maxRiskLevel = 'HIGH';\n      highRiskFlags.push(`HIGH risk for \"${result.term}\"`);\n    } else if (result.overallRisk === 'MEDIUM' && !['CRITICAL', 'HIGH'].includes(maxRiskLevel)) {\n      maxRiskLevel = 'MEDIUM';\n    } else if (result.overallRisk === 'LOW' && maxRiskLevel === 'MINIMAL') {\n      maxRiskLevel = 'LOW';\n    }\n    \n    // Add specific high-risk matches\n    if (result.highRiskMatches && result.highRiskMatches.length > 0) {\n      result.highRiskMatches.forEach(match => {\n        if (match.riskLevel === 'CRITICAL') {\n          criticalFlags.push(`Critical match: \"${match.markText}\" (${match.source})`);\n        } else if (match.riskLevel === 'HIGH') {\n          highRiskFlags.push(`High risk match: \"${match.markText}\" (${match.source})`);\n        }\n      });\n    }\n  });\n  \n  return {\n    maxRiskLevel,\n    totalMatches,\n    totalHighRisk,\n    criticalFlags,\n    highRiskFlags,\n    riskFactors: [...criticalFlags, ...highRiskFlags]\n  };\n}\n\nfunction determineIPStatus(riskAnalysis) {\n  const { maxRiskLevel, totalHighRisk, criticalFlags } = riskAnalysis;\n  \n  // Critical risk = immediate rejection\n  if (maxRiskLevel === 'CRITICAL' || criticalFlags.length > 0) {\n    return 'rejected';\n  }\n  \n  // High risk or multiple high-risk matches = flagged for review\n  if (maxRiskLevel === 'HIGH' || totalHighRisk > 1) {\n    return 'flagged';\n  }\n  \n  // Medium risk = flagged for review but likely okay\n  if (maxRiskLevel === 'MEDIUM' || totalHighRisk > 0) {\n    return 'flagged';\n  }\n  \n  // Low risk or minimal = approved\n  return 'approved';\n}\n\nasync function main() {\n  const inputData = $input.first().json;\n  const niche = inputData.niche;\n  const designPrompt = inputData.replicate_ready?.prompt || '';\n  \n  console.log(`🔍 Real IP checking for: ${niche}`);\n  \n  try {\n    // Check for duplicate IP checks\n    if (await isDuplicateTopic(`${niche}_ip_check`)) {\n      console.log(`⏭️ Skipping duplicate IP check: ${niche}`);\n      return [{ json: { skipped: true, reason: 'duplicate_ip_check', niche } }];\n    }\n    \n    // Track real IP checking costs\n    await trackCost('ip_checking', 0.001, `Agent #09 - Real IP checking for ${niche}`);\n    \n    // Extract and clean search terms from prompt and niche\n    const rawTerms = [niche];\n    \n    if (designPrompt) {\n      // Extract meaningful terms from design prompt\n      const promptTerms = designPrompt\n        .toLowerCase()\n        .replace(/[^a-zA-Z0-9\\s]/g, ' ')\n        .split(/\\s+/)\n        .filter(word => \n          word.length > 3 && \n          !['tshirt', 'shirt', 'design', 'funny', 'cool', 'awesome', 'great', 'best', 'with', 'that', 'this', 'make', 'your'].includes(word)\n        )\n        .slice(0, 4);\n      \n      rawTerms.push(...promptTerms);\n    }\n    \n    const searchTerms = [...new Set(rawTerms)].filter(Boolean);\n    \n    if (searchTerms.length === 0) {\n      return [{ json: {\n        niche,\n        error: 'No valid search terms extracted for trademark checking',\n        ip_status: 'error',\n        can_proceed: false,\n        agent_source: 'ip-checker-09',\n        checked_at: new Date().toISOString()\n      }}];\n    }\n    \n    // Perform real trademark checks\n    const trademarkResults = await performTrademarkChecks(searchTerms);\n    \n    // Analyze risk from real data\n    const riskAnalysis = analyzeTrademarkRisk(trademarkResults);\n    const ipStatus = determineIPStatus(riskAnalysis);\n    \n    // Prepare comprehensive results\n    const result = {\n      niche,\n      ip_check_results: {\n        search_terms: searchTerms,\n        trademark_results: trademarkResults,\n        risk_analysis: riskAnalysis,\n        regional_breakdown: {\n          us_matches: trademarkResults.reduce((sum, r) => sum + (r.regions?.US?.matches?.length || 0), 0),\n          eu_matches: trademarkResults.reduce((sum, r) => sum + (r.regions?.EU?.matches?.length || 0), 0)\n        },\n        total_matches: riskAnalysis.totalMatches,\n        total_high_risk: riskAnalysis.totalHighRisk,\n        max_risk_level: riskAnalysis.maxRiskLevel,\n        risk_factors: riskAnalysis.riskFactors\n      },\n      ip_status: ipStatus,\n      can_proceed: ipStatus === 'approved',\n      recommendations: trademarkResults\n        .filter(r => r.recommendations)\n        .map(r => r.recommendations)\n        .flat()\n        .slice(0, 3),\n      agent_source: 'ip-checker-09',\n      checked_at: new Date().toISOString(),\n      real_api: true\n    };\n    \n    console.log(`✅ Real IP Status: ${ipStatus}`);\n    console.log(`📊 Risk Level: ${riskAnalysis.maxRiskLevel}`);\n    console.log(`🔍 Total Matches: ${riskAnalysis.totalMatches}`);\n    console.log(`⚠️ High Risk Matches: ${riskAnalysis.totalHighRisk}`);\n    \n    if (riskAnalysis.riskFactors.length > 0) {\n      console.log(`🚨 Risk Factors: ${riskAnalysis.riskFactors.slice(0, 2).join('; ')}`);\n    }\n    \n    // Success heartbeat\n    await trackCost('system_health', 0.001, 'Agent #09 - Success heartbeat');\n    \n    return [{ json: result }];\n    \n  } catch (error) {\n    console.error('❌ Real IP Checker error:', error);\n    await errorHandler('ip-checker-09', error, { niche });\n    throw error;\n  }\n}\n\nreturn await main();"
+      },
+      "id": "ip-checker-code",
+      "name": "USPTO & EUIPO Checks",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [440, 300]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "{{ $env.NOTION_DATABASE_ID }}",
+          "mode": "id"
+        },
+        "pageId": "={{ $json.niche }}",
+        "properties": {
+          "IP Status": {
+            "type": "select",
+            "select": { "name": "={{ $json.ip_status }}" }
+          },
+          "IP Risk Level": {
+            "type": "select",
+            "select": { "name": "={{ $json.ip_check_results.overall_risk }}" }
+          },
+          "Active Trademarks": {
+            "type": "number",
+            "number": "={{ $json.ip_check_results.total_active_marks }}"
+          },
+          "IP Check Data": {
+            "type": "text",
+            "text": [{ "type": "text", "text": "={{ JSON.stringify($json.ip_check_results) }}" }]
+          }
+        }
+      },
+      "id": "update-ip-status",
+      "name": "Update TaskDB IP Status",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2,
+      "position": [640, 300],
+      "retryOnFail": true
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": { "main": [[ { "node": "USPTO & EUIPO Checks", "type": "main", "index": 0 } ]] },
+    "USPTO & EUIPO Checks": { "main": [[ { "node": "Update TaskDB IP Status", "type": "main", "index": 0 } ]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": [{ "id": "agent-09", "name": "ip-checker" }],
+  "versionId": "v1.0-week5"
+}

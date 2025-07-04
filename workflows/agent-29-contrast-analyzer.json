@@ -1,0 +1,212 @@
+{
+  "name": "Agent #29 - Contrast Analyzer QC",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "contrast-analyzer",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [140, 300],
+      "webhookId": "contrast-analyzer-29"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Agent #29 Contrast Analyzer - Input Processing\n// Production-ready input validation and processing\n\nconst { ContrastClient } = require('../clients/contrast-client');\nconst { validateEnvironment } = require('../shared/utils');\n\nconst inputData = $input.first().json;\nconst imageUrl = inputData.image_url || inputData.design_url || '';\nconst designId = inputData.design_id || 'unknown';\nconst imageData = inputData.image_data; // Base64 or binary data\n\nif (!imageUrl && !imageData) {\n  throw new Error('No image URL or image data provided for contrast analysis');\n}\n\n// Initialize client\nconst client = new ContrastClient();\n\nconsole.log(`🎨 Agent #29 processing contrast analysis for design: ${designId}`);\nconsole.log(`🖼️ Image source: ${imageUrl ? 'URL' : 'Data'}`);\n\nreturn {\n  design_id: designId,\n  image_url: imageUrl,\n  image_data: imageData,\n  options: inputData.options || {},\n  timestamp: new Date().toISOString(),\n  agent: 'contrast-analyzer-29'\n};"
+      },
+      "id": "process-input",
+      "name": "Process Input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [340, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Agent #29 - Image Download (if URL provided)\n// Production image download with error handling\n\nconst fetch = require('node-fetch');\nconst data = $input.first().json;\n\nif (data.image_url && !data.image_data) {\n  console.log(`⬇️ Downloading image from: ${data.image_url}`);\n  \n  try {\n    const response = await fetch(data.image_url, {\n      method: 'GET',\n      timeout: 30000, // 30 second timeout\n      headers: {\n        'User-Agent': 'ATT-System-QC-Agent/1.0'\n      }\n    });\n    \n    if (!response.ok) {\n      throw new Error(`Image download failed: HTTP ${response.status}`);\n    }\n    \n    const imageBuffer = await response.buffer();\n    const imageBase64 = imageBuffer.toString('base64');\n    \n    console.log(`✅ Image downloaded successfully (${imageBuffer.length} bytes)`);\n    \n    return {\n      ...data,\n      image_data: imageBase64,\n      image_downloaded: true,\n      download_timestamp: new Date().toISOString(),\n      image_size_bytes: imageBuffer.length\n    };\n    \n  } catch (error) {\n    console.error(`❌ Image download failed: ${error.message}`);\n    throw new Error(`Failed to download image: ${error.message}`);\n  }\n  \n} else {\n  console.log(`📦 Using provided image data`);\n  return {\n    ...data,\n    image_downloaded: false\n  };\n}"
+      },
+      "id": "download-image",
+      "name": "Download Image",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [540, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Agent #29 - Contrast Analysis Execution\n// Production implementation with WCAG compliance checking\n\nconst { ContrastClient } = require('../clients/contrast-client');\nconst { errorHandler } = require('../shared/error-handler');\n\nconst data = $input.first().json;\n\ntry {\n  const client = new ContrastClient();\n  \n  // Perform contrast analysis\n  const contrastResult = await client.analyzeContrast(data.image_data, data.options);\n  \n  console.log(`✅ Contrast analysis completed for ${data.design_id}`);\n  console.log(`📊 Status: ${contrastResult.status}`);\n  console.log(`🎯 Contrast Ratio: ${contrastResult.contrast_ratio}:1`);\n  console.log(`♿ WCAG AA: ${contrastResult.wcag_aa_compliant ? 'PASS' : 'FAIL'}`);\n  console.log(`🌟 WCAG AAA: ${contrastResult.wcag_aaa_compliant ? 'PASS' : 'FAIL'}`);\n  \n  return {\n    ...data,\n    qc_result: contrastResult,\n    success: true,\n    completed_at: new Date().toISOString()\n  };\n  \n} catch (error) {\n  console.error(`❌ Contrast analysis failed for ${data.design_id}:`, error.message);\n  \n  await errorHandler('contrast-analyzer-29', error, {\n    design_id: data.design_id,\n    has_image_data: !!data.image_data\n  });\n  \n  return {\n    ...data,\n    qc_result: {\n      agent: 'contrast-analyzer-29',\n      status: 'fail',\n      error: error.message,\n      processing_time_ms: 0,\n      cost: 0\n    },\n    success: false,\n    error: error.message,\n    completed_at: new Date().toISOString()\n  };\n}"
+      },
+      "id": "contrast-analysis-execution",
+      "name": "Contrast Analysis Execution",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [740, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [],
+          "dateTime": [],
+          "number": [],
+          "string": [
+            {
+              "id": "success-check",
+              "leftValue": "={{ $json.success }}",
+              "rightValue": "true",
+              "operation": "equal"
+            }
+          ]
+        },
+        "combineOperation": "all"
+      },
+      "id": "check-success",
+      "name": "Check Success",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [940, 300]
+    },
+    {
+      "parameters": {
+        "authentication": "headerAuth",
+        "resource": "databaseItem",
+        "operation": "create",
+        "databaseId": "={{ $env.NOTION_QC_DATABASE_ID }}",
+        "simple": false,
+        "properties": {\n          \"metaData\": [\n            {\n              \"key\": \"Design ID\",\n              \"type\": \"title\",\n              \"value\": \"={{ $json.design_id }}\"\n            },\n            {\n              \"key\": \"Agent\",\n              \"type\": \"select\",\n              \"value\": \"contrast-analyzer-29\"\n            },\n            {\n              \"key\": \"Status\",\n              \"type\": \"select\",\n              \"value\": \"={{ $json.qc_result.status }}\"\n            },\n            {\n              \"key\": \"Score\",\n              \"type\": \"number\",\n              \"value\": \"={{ $json.qc_result.accessibility_score || 0 }}\"\n            },\n            {\n              \"key\": \"Results\",\n              \"type\": \"rich_text\",\n              \"value\": \"={{ JSON.stringify($json.qc_result) }}\"\n            },\n            {\n              \"key\": \"Issues\",\n              \"type\": \"rich_text\",\n              \"value\": \"={{ $json.qc_result.wcag_aa_compliant ? '' : 'WCAG AA non-compliant' }}\"\n            },\n            {\n              \"key\": \"Recommendations\",\n              \"type\": \"rich_text\",\n              \"value\": \"={{ $json.qc_result.wcag_aaa_compliant ? 'Excellent contrast' : 'Consider higher contrast for AAA compliance' }}\"\n            },\n            {\n              \"key\": \"Processing Time\",\n              \"type\": \"number\",\n              \"value\": \"={{ $json.qc_result.processing_time_ms || 0 }}\"\n            },\n            {\n              \"key\": \"Cost\",\n              \"type\": \"number\",\n              \"value\": \"={{ $json.qc_result.cost || 0 }}\"\n            }\n          ]\n        }
+      },
+      "id": "save-to-notion",
+      "name": "Save to Notion QC DB",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2,
+      "position": [1140, 200]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Agent #29 - Error Handling and Logging\n// Production error tracking with detailed context\n\nconst data = $input.first().json;\n\nconsole.error(`❌ Agent #29 failed for design: ${data.design_id}`);\nconsole.error(`Error: ${data.error}`);\n\n// Log to error tracking system\nconst errorEntry = {\n  agent: 'contrast-analyzer-29',\n  design_id: data.design_id,\n  error: data.error,\n  timestamp: new Date().toISOString(),\n  image_source: data.image_url ? 'url' : 'data',\n  retry_count: data.retry_count || 0\n};\n\nconsole.log('Error entry:', JSON.stringify(errorEntry, null, 2));\n\nreturn {\n  ...data,\n  error_logged: true,\n  error_entry: errorEntry\n};"
+      },
+      "id": "handle-error",
+      "name": "Handle Error",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1140, 400]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({\n  agent: 'contrast-analyzer-29',\n  design_id: $json.design_id,\n  success: $json.success,\n  status: $json.qc_result.status,\n  contrast_ratio: $json.qc_result.contrast_ratio,\n  wcag_aa_compliant: $json.qc_result.wcag_aa_compliant,\n  wcag_aaa_compliant: $json.qc_result.wcag_aaa_compliant,\n  result: $json.qc_result,\n  timestamp: $json.completed_at\n}) }}"
+      },
+      "id": "respond-webhook",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1340, 300]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Process Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Input": {
+      "main": [
+        [
+          {
+            "node": "Download Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download Image": {
+      "main": [
+        [
+          {
+            "node": "Contrast Analysis Execution",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Contrast Analysis Execution": {
+      "main": [
+        [
+          {
+            "node": "Check Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Success": {
+      "main": [
+        [
+          {
+            "node": "Save to Notion QC DB",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Handle Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save to Notion QC DB": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Handle Error": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "1.0-week6-alpha",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "att-system-agent-29"
+  },
+  "id": "agent-29-contrast-analyzer",
+  "tags": [
+    {
+      "createdAt": "2024-12-30T00:00:00.000Z",
+      "updatedAt": "2024-12-30T00:00:00.000Z",
+      "id": "qc-agents",
+      "name": "QC Agents"
+    }
+  ]
+}
